@@ -71,9 +71,10 @@ export default function LoginPage() {
             <button
               type="submit"
               className="btn btn-primary mt-2"
-              disabled={isLoading}
+              // disabled={isLoading}
             >
-              {isLoading ? <span className="loading loading-spinner loading-sm" /> : 'Accedi'}
+              {/* {isLoading ? <span className="loading loading-spinner loading-sm" /> : 'Accedi'} */}
+              Accedi
             </button>
           </form>
 
