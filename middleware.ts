@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAccessToken } from '@/lib/jwt'
 
-const ROOT_IS_PRIVATE = true  // ← commenta/decommenta per rendere la root privata o pubblica
+const ROOT_IS_PRIVATE = false  // ← commenta/decommenta per rendere la root privata o pubblica
 
 const protectedRoutes = ['/api/users']
 const protectedPages = ['/dashboard']
@@ -14,25 +14,13 @@ export async function middleware(req: NextRequest) {
 
   // --- root redirect ---
   if (pathname === '/') {
-    if (ROOT_IS_PRIVATE) {
-      // Nessuna sessione attiva nemmeno potenzialmente
-      if (!accessToken && !refreshToken) {
-        return NextResponse.redirect(new URL('/login', req.url))
+    if (accessToken) {
+      try {
+        await verifyAccessToken(accessToken)
+        return NextResponse.redirect(new URL('/dashboard', req.url))
+      } catch {
+        // token scaduto, mostra la home normalmente
       }
-      if (accessToken) {
-        try {
-          await verifyAccessToken(accessToken)
-          return NextResponse.redirect(new URL('/dashboard', req.url))
-        } catch {
-          // access scaduto ma c'è il refresh: vai a dashboard, ci penserà l'interceptor
-          if (refreshToken) return NextResponse.redirect(new URL('/dashboard', req.url))
-          const res = NextResponse.redirect(new URL('/login', req.url))
-          res.cookies.delete('accessToken')
-          return res
-        }
-      }
-      // solo refreshToken: vai a dashboard, l'interceptor farà il refresh alla prima chiamata
-      return NextResponse.redirect(new URL('/dashboard', req.url))
     }
     return NextResponse.next()
   }

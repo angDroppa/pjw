@@ -28,9 +28,6 @@ model User {
   roleName String
 
   refreshTokens RefreshToken[]
-
-  permits Permit[] @relation("UserPermits")
-  reviews Permit[] @relation("UserReviews")
 }
 
 model RefreshToken {
@@ -43,27 +40,4 @@ model RefreshToken {
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model PermitCategory {
-  categoryName String   @id
-  permits      Permit[]
-}
 
-model Permit {
-  id        Int      @id @default(autoincrement())
-  startDate DateTime
-  endDate   DateTime
-
-  category   PermitCategory @relation(fields: [categoryId], references: [categoryName], onDelete: Cascade)
-  categoryId String
-
-  motivation String
-
-  state          Boolean?
-  evaluationDate DateTime?
-
-  userId Int
-  user   User @relation("UserPermits", fields: [userId], references: [id], onDelete: Cascade)
-
-  reviewerId Int?
-  reviewer   User? @relation("UserReviews", fields: [reviewerId], references: [id], onDelete: SetNull)
-}
