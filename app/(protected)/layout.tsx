@@ -8,7 +8,6 @@ export default function ProtectedLayout({
 }) {
   return (
     <>
-      {/* <Navbar /> */}
       {/* <Toaster
         position="top-right"
         toastOptions={{
@@ -16,8 +15,9 @@ export default function ProtectedLayout({
           success: { duration: 3000 },
           error: { duration: 5000 },
         }}
-      />
-      {children} */}
+      /> */}
+    
+      {children} 
     </>
   );
 }
