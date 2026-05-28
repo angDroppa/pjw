@@ -64,6 +64,15 @@ model Prenotazione {
   biciclettaId    Int
   utente          User       @relation(fields: [utenteId], references: [id], onDelete: Cascade)
   bicicletta      Bicicletta @relation(fields: [biciclettaId], references: [id], onDelete: Cascade)
+  locationId      Int
+  location        location   @relation(fields: [locationId], references: [id], onDelete: Cascade)
+}
+
+model location {
+  id       Int    @id @default(autoincrement())
+  nome     String
+  indirizzo String
+  prenotazioni Prenotazione[]
 }
 
 model Notifica {
