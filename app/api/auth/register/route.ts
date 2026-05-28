@@ -27,7 +27,7 @@ export async function POST(req: Request) {
       lastName: parsed.data.lastName,
       email: parsed.data.email,
       password: hashedPassword,
-      role: { connect: { role: 'DIPENDENTE' } },
+      role: { connect: { role: 'USER' } },
     },
   })
 
