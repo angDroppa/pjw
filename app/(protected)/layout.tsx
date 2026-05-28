@@ -8,8 +8,8 @@ export default function ProtectedLayout({
 }) {
   return (
     <>
-      <Navbar />
-      <Toaster
+      {/* <Navbar /> */}
+      {/* <Toaster
         position="top-right"
         toastOptions={{
           duration: 4000,
@@ -17,7 +17,7 @@ export default function ProtectedLayout({
           error: { duration: 5000 },
         }}
       />
-      {children}
+      {children} */}
     </>
   );
 }

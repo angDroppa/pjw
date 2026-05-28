@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAccessToken } from '@/lib/jwt'
 
-const ROOT_IS_PRIVATE = false  // ← commenta/decommenta per rendere la root privata o pubblica
-
 const protectedRoutes = ['/api/users']
 const protectedPages = ['/dashboard']
 const authPages = ['/login', '/register']
@@ -12,71 +10,53 @@ export async function middleware(req: NextRequest) {
   const accessToken = req.cookies.get('accessToken')?.value
   const refreshToken = req.cookies.get('refreshToken')?.value
 
-  // --- root redirect ---
+  const isTokenValid = async (token: string) => {
+    try { await verifyAccessToken(token); return true } catch { return false }
+  }
+
+  // --- root ---
   if (pathname === '/') {
-    if (accessToken) {
-      try {
-        await verifyAccessToken(accessToken)
-        return NextResponse.redirect(new URL('/dashboard', req.url))
-      } catch {
-        // token scaduto, mostra la home normalmente
-      }
+    if (accessToken && await isTokenValid(accessToken)) {
+      return NextResponse.redirect(new URL('/dashboard', req.url))
     }
     return NextResponse.next()
   }
 
-  // --- protezione pagine client-side ---
-  const isProtectedPage = protectedPages.some(r => pathname.startsWith(r))
-  const isAuthPage = authPages.some(r => pathname.startsWith(r))
+  // --- pagine auth: sempre accessibili, redirect solo se già loggato ---
+  if (authPages.some(p => pathname.startsWith(p))) {
+    if (accessToken && await isTokenValid(accessToken)) {
+      return NextResponse.redirect(new URL('/dashboard', req.url))
+    }
+    return NextResponse.next() // ← esplicito, nessun token = mostra la pagina
+  }
 
-  if (isProtectedPage) {
-    // Nessun token: logout reale
+  // --- pagine protette ---
+  if (protectedPages.some(p => pathname.startsWith(p))) {
     if (!accessToken && !refreshToken) {
       return NextResponse.redirect(new URL('/login', req.url))
     }
-
-    if (accessToken) {
-      try {
-        await verifyAccessToken(accessToken)
-        // token valido, passa
-      } catch {
-        // access scaduto: se non c'è il refreshToken redirect a login
-        if (!refreshToken) {
-          const res = NextResponse.redirect(new URL('/login', req.url))
-          res.cookies.delete('accessToken')
-          return res
-        }
-        // refreshToken presente → lascia passare, l'interceptor axios farà il refresh
-      }
+    if (accessToken && !await isTokenValid(accessToken) && !refreshToken) {
+      const res = NextResponse.redirect(new URL('/login', req.url))
+      res.cookies.delete('accessToken')
+      return res
     }
-    // solo refreshToken senza accessToken → lascia passare
-  }
-
-  if (isAuthPage && accessToken) {
-    try {
-      await verifyAccessToken(accessToken)
-      return NextResponse.redirect(new URL('/dashboard', req.url))
-    } catch {
-      // token scaduto, lascia passare alla pagina di login
-    }
-  }
-
-  // --- protezione API route ---
-  const isProtectedApi = protectedRoutes.some(r => pathname.startsWith(r))
-  if (!isProtectedApi) return NextResponse.next()
-
-  const authHeader = req.headers.get('authorization')
-  if (!authHeader?.startsWith('Bearer ')) {
-    return NextResponse.json({ error: 'Token mancante' }, { status: 401 })
-  }
-
-  const token = authHeader.split(' ')[1]
-  try {
-    await verifyAccessToken(token)
     return NextResponse.next()
-  } catch {
-    return NextResponse.json({ error: 'Token non valido o scaduto' }, { status: 401 })
   }
+
+  // --- API protette ---
+  if (protectedRoutes.some(p => pathname.startsWith(p))) {
+    const authHeader = req.headers.get('authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Token mancante' }, { status: 401 })
+    }
+    const token = authHeader.split(' ')[1]
+    if (!await isTokenValid(token)) {
+      return NextResponse.json({ error: 'Token non valido o scaduto' }, { status: 401 })
+    }
+    return NextResponse.next()
+  }
+
+  return NextResponse.next()
 }
 
 export const config = {

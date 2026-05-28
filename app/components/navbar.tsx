@@ -2,7 +2,7 @@
 
 import { useAuthStore } from "@/lib/store/auth.store";
 import { authApi } from "@/lib/axios/auth";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
 
@@ -14,10 +14,15 @@ function useIsClient() {
   )
 }
 
+const hideNavbarOn = ['/login', '/register']
+
 export default function Navbar() {
   const { user, refreshToken, clearTokens } = useAuthStore();
   const router = useRouter();
+  const pathname = usePathname()
   const isClient = useIsClient()
+
+  if (hideNavbarOn.some(p => pathname.startsWith(p))) return null
 
   const handleLogout = async () => {
     try {
@@ -46,12 +51,9 @@ export default function Navbar() {
             </button>
           </div>
         ) : isClient ? (
-          <button
-            className="btn btn-sm btn-primary"
-            onClick={() => router.push("/login")}
-          >
+          <Link href="/login" className="btn btn-sm btn-primary">
             Login
-          </button>
+          </Link>
         ) : null}
       </div>
     </div>
