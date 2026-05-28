@@ -27,6 +27,11 @@ export default function Navbar() {
     <div className="w-full">
       <div className="fixed top-0 left-0 w-full z-50 bg-gray-100">
         <div className="h-16 flex items-center justify-between px-4">
+          <div className="flex-1">
+            <Link href="/" className="text-xl font-bold">
+              MyApp
+            </Link>
+          </div>
           <div className="ml-auto">
             {isClient &&
               (user ? (
