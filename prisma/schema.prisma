@@ -7,6 +7,7 @@ datasource db {
   provider = "postgresql"
 }
 
+
 model Role {
   role  String @id
   users User[]
@@ -38,8 +39,8 @@ model RefreshToken {
 }
 
 model Bicicletta {
-  id         Int     @id @default(autoincrement())
-  dimensione String
+  id          Int       @id @default(autoincrement())
+  dimensione  String
 
   modelloId   Int
   modello     Modello   @relation(fields: [modelloId], references: [id])
@@ -47,53 +48,54 @@ model Bicicletta {
   tipologiaId Int
   tipologia   Tipologia @relation(fields: [tipologiaId], references: [id])
 
-  accessori Accessorio[] // many-to-many implicito
-
-  coperturaId Int
-  copertura   Assicurazione @relation(fields: [coperturaId], references: [id], onDelete: Cascade)
-
   prenotazioni Prenotazione[]
 }
 
 model Modello {
-  id         Int          @id @default(autoincrement())
-  nome       String
+  id          Int          @id @default(autoincrement())
+  nome        String
   biciclette Bicicletta[]
 }
 
 model Tipologia {
-  id         Int          @id @default(autoincrement())
-  nome       String
-  biciclette Bicicletta[]
-}
-
-model Accessorio {
-  id         Int          @id @default(autoincrement())
-  nome       String
-  biciclette Bicicletta[]
-}
-
-model Assicurazione {
-  id         Int          @id @default(autoincrement())
-  tipo       String
-  dettagli   String
+  id          Int          @id @default(autoincrement())
+  nome        String
   biciclette Bicicletta[]
 }
 
 model Prenotazione {
-  id              Int        @id @default(autoincrement())
+  id              Int       @id @default(autoincrement())
   dataRitiro      DateTime
   dataOreConsegna DateTime
   dataPickUp      DateTime
 
-  utenteId     Int
-  utente       User       @relation(fields: [utenteId], references: [id], onDelete: Cascade)
+  utenteId        Int
+  utente          User       @relation(fields: [utenteId], references: [id], onDelete: Cascade)
 
-  biciclettaId Int
-  bicicletta   Bicicletta @relation(fields: [biciclettaId], references: [id], onDelete: Cascade)
+  biciclettaId    Int
+  bicicletta      Bicicletta @relation(fields: [biciclettaId], references: [id], onDelete: Cascade)
 
-  locationId Int
-  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  locationId      Int
+  location        Location   @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  // Spostati qui per gestire la configurazione dinamica dell'ordine (Product Card)
+  coperturaId     Int
+  copertura       Assicurazione @relation(fields: [coperturaId], references: [id], onDelete: Cascade)
+
+  accessori       Accessorio[]  // Relazione molti-a-molti implicita sulla prenotazione
+}
+
+model Accessorio {
+  id           Int            @id @default(autoincrement())
+  nome         String
+  prenotazioni Prenotazione[] // Legato alle prenotazioni, non più alle biciclette
+}
+
+model Assicurazione {
+  id           Int            @id @default(autoincrement())
+  tipo         String
+  dettagli     String
+  prenotazioni Prenotazione[] // Legato alle prenotazioni, non più alle biciclette
 }
 
 model Location {
@@ -109,4 +111,3 @@ model Notifica {
   utenteId  Int
   utente    User   @relation(fields: [utenteId], references: [id])
 }
-
