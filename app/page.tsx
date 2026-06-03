@@ -1,17 +1,30 @@
-// app/page.tsx
-import { productsApi } from "@/lib/axios/productsServices";
-import ProductCard from "./components/ProductCard";
+'use client'
 
-export default async function Home() {
-  // Esegue il fetch sul server con le nuove relazioni incluse
-  const products = await productsApi.getProducts();
-  console.log("Prodotti caricati sul server:", products);
+import { useState, useEffect } from "react";
+import axios from "axios"; // 👈 Usiamo Axios standard per il client
+import ProductCard from "./components/ProductCard";
+import ProductConfigurator from "./components/ProductConfigurator";
+import { Bicicletta } from "@/lib/schemas/bicicletta.schema";
+
+export default function Home() {
+  const [products, setProducts] = useState<Bicicletta[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<Bicicletta | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // 👈 Chiamiamo l'API Route, così Prisma resta al sicuro sul server!
+    axios.get<Bicicletta[]>('/api/products')
+      .then(res => {
+        setProducts(res.data);
+      })
+      .catch(err => console.error("Errore caricamento prodotti:", err))
+      .finally(() => setIsLoading(false));
+  }, []);
 
   return (
-    <main className="min-h-screen bg-slate-900 text-slate-100 py-12 px-4 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-slate-900 text-slate-100 py-12 px-4 sm:px-6 lg:px-8 relative">
       <div className="max-w-7xl mx-auto">
         
-        {/* Header della pagina */}
         <div className="text-center mb-16">
           <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent sm:text-5xl">
             Scegli la tua Bicicletta
@@ -21,11 +34,16 @@ export default async function Home() {
           </p>
         </div>
 
-        {/* Grid delle Card */}
-        {products && products.length > 0 ? (
+        {isLoading ? (
+          <div className="text-center py-12 text-slate-400">Caricamento catalogo...</div>
+        ) : products && products.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
             {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard 
+                key={product.id} 
+                product={product} 
+                onSelect={() => setSelectedProduct(product)} 
+              />
             ))}
           </div>
         ) : (
@@ -33,8 +51,14 @@ export default async function Home() {
             Nessuna bicicletta disponibile nel catalogo al momento.
           </div>
         )}
-
       </div>
+
+      {selectedProduct && (
+        <ProductConfigurator 
+          product={selectedProduct} 
+          onClose={() => setSelectedProduct(null)} 
+        />
+      )}
     </main>
   );
 }
