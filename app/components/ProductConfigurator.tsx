@@ -1,7 +1,14 @@
 'use client'
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bicicletta } from "@/lib/schemas/bicicletta.schema";
+
+// Tipo per gli accessori che arrivano dalla API
+interface Accessorio {
+  id: number;
+  nome: string;
+  prezzo?: string;
+}
 
 interface ConfiguratorProps {
   product: Bicicletta;
@@ -14,26 +21,38 @@ export default function ProductConfigurator({ product, onClose }: ConfiguratorPr
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedAccessori, setSelectedAccessori] = useState<number[]>([]);
 
-  // Mock dei dati globali
+  // ✅ Stato per gli accessori reali dalla API
+  const [accessori, setAccessori] = useState<Accessorio[]>([]);
+  const [loadingAccessori, setLoadingAccessori] = useState(true);
+
+  // ✅ Fetch degli accessori al mount del componente
+  useEffect(() => {
+    const fetchAccessori = async () => {
+      try {
+        const res = await fetch("/api/accessori");
+        if (!res.ok) throw new Error("Errore nel caricamento accessori");
+        const data = await res.json();
+        setAccessori(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingAccessori(false);
+      }
+    };
+
+    fetchAccessori();
+  }, []);
+
   const locationsMock = [
     { id: 1, nome: "Sede Centrale - Piazza Duomo" },
     { id: 2, nome: "Hub Stazione Centrale" },
     { id: 3, nome: "Chiosco Parco Sempione" }
   ];
 
-  const accessoriMock = [
-    { id: 1, nome: "Casco Premium", prezzo: "Incluso" },
-    { id: 2, nome: "Lucchetto Rinforzato", prezzo: "Incluso" },
-    { id: 3, nome: "Seggiolino Bimbo", prezzo: "+5€" }
-  ];
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animated fadeIn duration-200">
-      
-      {/* Sfondo cliccabile per chiudere il popup */}
       <div className="absolute inset-0" onClick={onClose} />
 
-      {/* Finestra del Popup */}
       <div className="relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl p-6 z-10 text-left">
         
         {/* Header */}
@@ -83,30 +102,42 @@ export default function ProductConfigurator({ product, onClose }: ConfiguratorPr
             </select>
           </div>
 
-          {/* Accessori */}
+          {/* ✅ Accessori dalla API */}
           <div>
             <label className="block text-slate-300 font-semibold mb-1">4. Accessori Extra:</label>
             <div className="grid grid-cols-1 gap-2 bg-slate-800/40 p-3 rounded-lg border border-slate-800">
-              {accessoriMock.map((acc) => (
-                <label key={acc.id} className="flex items-center gap-3 text-slate-300 cursor-pointer py-1 hover:text-white">
-                  <input 
-                    type="checkbox" 
-                    checked={selectedAccessori.includes(acc.id)}
-                    onChange={() => setSelectedAccessori(prev => prev.includes(acc.id) ? prev.filter(i => i !== acc.id) : [...prev, acc.id])}
-                    className="w-4 h-4 accent-emerald-400 rounded"
-                  />
-                  <span>{acc.nome} <span className="text-xs text-slate-500">({acc.prezzo})</span></span>
-                </label>
-              ))}
+              {loadingAccessori ? (
+                <p className="text-slate-500 text-xs py-1">Caricamento accessori...</p>
+              ) : accessori.length === 0 ? (
+                <p className="text-slate-500 text-xs py-1">Nessun accessorio disponibile.</p>
+              ) : (
+                accessori.map((acc) => (
+                  <label key={acc.id} className="flex items-center gap-3 text-slate-300 cursor-pointer py-1 hover:text-white">
+                    <input
+                      type="checkbox"
+                      checked={selectedAccessori.includes(acc.id)}
+                      onChange={() =>
+                        setSelectedAccessori(prev =>
+                          prev.includes(acc.id) ? prev.filter(i => i !== acc.id) : [...prev, acc.id]
+                        )
+                      }
+                      className="w-4 h-4 accent-emerald-400 rounded"
+                    />
+                    <span>
+                      {acc.nome}
+                      {acc.prezzo && <span className="text-xs text-slate-500"> ({acc.prezzo})</span>}
+                    </span>
+                  </label>
+                ))
+              )}
             </div>
           </div>
 
-          {/* Bottone di Invio */}
+          {/* Submit */}
           <button type="submit" className="w-full bg-gradient-to-r from-emerald-400 to-cyan-500 text-slate-900 font-bold py-3 rounded-lg mt-2 hover:opacity-90 active:scale-[0.99] transition shadow-lg shadow-emerald-500/10">
             Conferma Configurazione e Prenota
           </button>
         </form>
-
       </div>
     </div>
   );
