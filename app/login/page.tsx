@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { authApi } from '@/lib/axios/auth'
 import { LoginSchema, type Login } from '@/lib/schemas/auth.schema'
 import { useAuthStore } from '@/lib/store/auth.store'
+import './globals.css';
 
 export default function LoginPage() {
   const router = useRouter()
@@ -36,7 +37,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center">
+    <main className="flex min-h-screen items-center justify-center bg-black">
       <div className="card bg-base-100 w-full max-w-md shadow-sm">
         <div className="card-body gap-4">
           <h2 className="card-title text-2xl">Accedi</h2>

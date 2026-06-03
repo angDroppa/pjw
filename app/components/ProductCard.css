@@ -1,0 +1,195 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
+/* --- PRODUCT CARD STYLES (Puro CSS Standard) --- */
+
+.product-card {
+  position: relative;
+  background-color: #1e293b; /* slate-800 */
+  border: 1px solid #334155; /* slate-700 */
+  border-radius: 1rem; /* rounded-2xl */
+  padding: 1.5rem; /* p-6 */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); /* shadow-md */
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* ease-out */
+}
+
+/* Effetti hover sul contenitore principale */
+.product-card:hover {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 50px 0 rgba(16, 185, 129, 0.1); /* shadow-2xl + emerald shadow */
+  transform: translateY(-0.75rem) rotate(1deg) scale(1.02); /* hover:-translate-y-3 hover:rotate-1 hover:scale-[1.02] */
+}
+
+.card-glow {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(to bottom right, rgba(16, 185, 129, 0.2), transparent);
+  opacity: 0;
+  border-radius: 1rem;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+/* Quando si fa hover sulla card (.group), lo sfondo luminoso si attiva */
+.group:hover .card-glow {
+  opacity: 1;
+}
+
+.card-content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.card-badge {
+  font-size: 0.75rem; /* text-xs */
+  font-weight: 600; /* font-semibold */
+  padding: 0.25rem 0.625rem; /* py-1 px-2.5 */
+  border-radius: 9999px; /* rounded-full */
+  text-transform: uppercase;
+  letter-spacing: 0.05em; /* tracking-wider */
+  transition: all 0.3s ease;
+}
+
+/* Badge Bici Elettrica */
+.badge-electric {
+  background-color: rgba(6, 182, 212, 0.1); /* cyan-500/10 */
+  color: #22d3ee; /* cyan-400 */
+  border: 1px solid rgba(6, 182, 212, 0.2);
+}
+
+.group:hover .badge-electric {
+  background-color: #06b6d4; /* cyan-500 */
+  color: #0f172a; /* slate-900 */
+}
+
+/* Badge Bici Standard */
+.badge-standard {
+  background-color: rgba(16, 185, 129, 0.1); /* emerald-500/10 */
+  color: #34d399; /* emerald-400 */
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.group:hover .badge-standard {
+  background-color: #10b981; /* emerald-500 */
+  color: #0f172a; /* slate-900 */
+}
+
+.card-size {
+  font-size: 0.75rem;
+  background-color: #334155; /* slate-700 */
+  color: #cbd5e1; /* slate-300 */
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.card-title {
+  font-size: 1.25rem; /* text-xl */
+  font-weight: 700; /* font-bold */
+  color: #f1f5f9; /* slate-100 */
+  transition: color 0.3s ease;
+  
+  /* Taglio del testo a un massimo di 2 righe (line-clamp-2) */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.group:hover .card-title {
+  color: #34d399; /* text-emerald-400 */
+}
+
+.card-media-wrapper {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 7rem; /* h-28 */
+  background-color: rgba(15, 23, 42, 0.5); /* slate-900/50 */
+  border-radius: 0.75rem; /* rounded-xl */
+  border: 1px solid rgba(51, 65, 85, 0.5); /* slate-700/50 */
+  overflow: hidden;
+  position: relative;
+}
+
+.card-emoji {
+  font-size: 3rem; /* text-5xl */
+  transition: transform 0.5s ease;
+}
+
+.group:hover .card-emoji {
+  transform: scale(1.25);
+  animation: bounce 1s infinite;
+}
+
+.card-decor-line {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-image: linear-gradient(to right, transparent, #334155, transparent);
+  transition: all 0.5s ease;
+}
+
+.group:hover .card-decor-line {
+  background-image: linear-gradient(to right, transparent, #10b981, transparent);
+}
+
+.card-button {
+  width: 100%;
+  margin-top: auto;
+  background-color: #334155; /* slate-700 */
+  color: #e2e8f0; /* slate-200 */
+  font-weight: 600;
+  padding: 0.625rem 1rem; /* py-2.5 px-4 */
+  border-radius: 0.75rem; /* rounded-xl */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+.group:hover .card-button {
+  background-image: linear-gradient(to right, #10b981, #06b6d4); /* from-emerald-500 to-cyan-500 */
+  color: #0f172a; /* slate-900 */
+}
+
+.card-button-icon {
+  width: 1rem;
+  height: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.group:hover .card-button-icon {
+  transform: translateX(0.25rem); /* translate-x-1 */
+}
+
+/* Animazione del Rimbalzo (Bounce) */
+@keyframes bounce {
+  0%, 100% {
+    transform: scale(1.25) translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: scale(1.25) translateY(0);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}

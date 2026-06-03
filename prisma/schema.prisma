@@ -14,18 +14,25 @@ model Role {
 }
 
 model User {
-  id        Int    @id @default(autoincrement())
-  firstName String
-  lastName  String
-  email     String @unique
-  password  String
-
-  role     Role   @relation(fields: [roleName], references: [role])
-  roleName String
-
-  refreshTokens RefreshToken[]
-  prenotazioni  Prenotazione[]
+  id            Int            @id @default(autoincrement())
+  firstName     String
+  lastName      String
+  email         String         @unique
+  password      String
+  roleName      String
   notifiche     Notifica[]
+  prenotazioni  Prenotazione[]
+  id            Int            @id @default(autoincrement())
+  firstName     String
+  lastName      String
+  email         String         @unique
+  password      String
+  roleName      String
+  notifiche     Notifica[]
+  prenotazioni  Prenotazione[]
+  refreshTokens RefreshToken[]
+  role          Role           @relation(fields: [roleName], references: [role])
+  role          Role           @relation(fields: [roleName], references: [role])
 }
 
 model RefreshToken {
@@ -33,9 +40,10 @@ model RefreshToken {
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
-
-  userId Int
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Bicicletta {

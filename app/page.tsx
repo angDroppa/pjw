@@ -1,13 +1,43 @@
-import axios from "axios";
-import {productsApi} from "@/lib/axios/productsServices";
+// app/page.tsx
+import { productsApi } from "@/lib/axios/productsServices";
+import ProductCard from "./components/ProductCard";
+
+// Definiamo l'interfaccia basata sul tuo JSON reale + la populate di modello e tipologia
+
+
 export default async function Home() {
- 
-  const products = await productsApi.getProducts()
-  console.log(products)
-  
+  // Esegue il fetch sul server (grazie alla separazione architetturale che abbiamo fatto)
+  const products = await productsApi.getProducts();
+  console.log("Prodotti caricati sul server:", products);
+
   return (
-    <div>
-      home funziona
-    </div>
+    <main className="min-h-screen bg-slate-900 text-slate-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        
+        {/* Header della pagina */}
+        <div className="text-center mb-16">
+          <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent sm:text-5xl">
+            Scegli la tua Bicicletta
+          </h1>
+          <p className="mt-4 text-xl text-slate-400">
+            Seleziona il mezzo perfetto per te e configuralo nella schermata di prenotazione.
+          </p>
+        </div>
+
+        {/* Grid delle Card */}
+        {products && products.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 text-slate-400">
+            Nessuna bicicletta disponibile nel catalogo al momento.
+          </div>
+        )}
+
+      </div>
+    </main>
   );
 }
