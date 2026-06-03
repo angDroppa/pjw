@@ -10,8 +10,8 @@ export const productsApi = {
       return await prisma.bicicletta.findMany({
         include: {
           modello: true,      // Prende il nome del modello
-          tipologia: true,    // Prende il nome della tipologia (es. Elettrica)
-          dimensione: true,   // Prende l'array delle taglie disponibili
+          tipologie: true,    // Prende il nome della tipologia (es. Elettrica)
+          dimensioni: true,   // Prende l'array delle taglie disponibili
         },
         orderBy: {
           id: 'desc',         // Opzionale: mostra le ultime bici inserite per prime

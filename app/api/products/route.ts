@@ -8,11 +8,11 @@ export async function GET() {
         // Include il modello per leggere: product.modello?.nome
         modello: true, 
         
-        // Include la tipologia per leggere: product.tipologia?.nome
-        tipologia: true, 
+        // Include la tipologia per leggere: product.tipologie?.nome
+        tipologie: true, 
         
         // Include l'array delle taglie e disponibilità per il ciclo .map()
-        dimensione: true, 
+        dimensioni: true, 
       },
       // Opzionale: ordina le biciclette per ID decrescente (le ultime inserite per prime)
       orderBy: {

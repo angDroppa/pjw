@@ -1,10 +1,13 @@
 import "./ProductCard.css";
-import { Bicicletta} from "@/lib/schemas/bicicletta.schema";
+import { Bicicletta } from "@/lib/schemas/bicicletta.schema";
 
 export default function ProductCard({ product }: { product: Bicicletta }) {
   const nomeModello = product.modello?.nome || `Modello #${product.modelloId}`;
-  const nomeTipologia = product.tipologia?.nome || `Tipologia #${product.tipologiaId}`;
-  const isElettrica = nomeTipologia.toLowerCase().includes("elettrica");
+  
+  // 1. Controlla se ALMENO una delle tipologie associate contiene la parola "elettrica"
+  const isElettrica = product.tipologie?.some((t) => 
+    t.nome.toLowerCase().includes("elettrica")
+  ) ?? false;
 
   return (
     <div className="product-card group">
@@ -15,11 +18,26 @@ export default function ProductCard({ product }: { product: Bicicletta }) {
         
         {/* Parte Superiore: Badge e Info */}
         <div>
-          <div className="card-header">
-            {/* Tag Tipologia */}
-            <span className={`card-badge ${isElettrica ? 'badge-electric' : 'badge-standard'}`}>
-              {nomeTipologia}
-            </span>
+          <div className="card-header flex justify-between items-start gap-2">
+            
+            {/* 2. AGGIORNATO: Ciclo sull'array delle tipologie per stampare tutti i badge associati */}
+            <div className="flex flex-wrap gap-1">
+              {product.tipologie && product.tipologie.length > 0 ? (
+                product.tipologie.map((t) => {
+                  const checkElettrica = t.nome.toLowerCase().includes("elettrica");
+                  return (
+                    <span 
+                      key={t.id} 
+                      className={`card-badge ${checkElettrica ? 'badge-electric' : 'badge-standard'}`}
+                    >
+                      {t.nome}
+                    </span>
+                  );
+                })
+              ) : (
+                <span className="card-badge badge-standard">Generica</span>
+              )}
+            </div>
 
             {/* Elenco delle Taglie disponibili */}
             <div className="card-size-container">

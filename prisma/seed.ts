@@ -19,21 +19,16 @@ async function main() {
   // ---------------------------
   // PULIZIA DATABASE
   // ---------------------------
-
   await prisma.prenotazione.deleteMany()
   await prisma.dimensione.deleteMany()
   await prisma.notifica.deleteMany()
   await prisma.refreshToken.deleteMany()
-
   await prisma.bicicletta.deleteMany()
-
   await prisma.location.deleteMany()
   await prisma.assicurazione.deleteMany()
   await prisma.accessorio.deleteMany()
-
   await prisma.modello.deleteMany()
   await prisma.tipologia.deleteMany()
-
   await prisma.user.deleteMany()
   await prisma.role.deleteMany()
 
@@ -42,19 +37,12 @@ async function main() {
   // ---------------------------
   // RUOLI
   // ---------------------------
-
-  await prisma.role.create({
-    data: { role: 'ADMIN' },
-  })
-
-  await prisma.role.create({
-    data: { role: 'USER' },
-  })
+  await prisma.role.create({ data: { role: 'ADMIN' } })
+  await prisma.role.create({ data: { role: 'USER' } })
 
   // ---------------------------
   // UTENTI
   // ---------------------------
-
   const utente1 = await prisma.user.create({
     data: {
       firstName: 'Mario',
@@ -88,137 +76,78 @@ async function main() {
   // ---------------------------
   // TIPOLOGIE
   // ---------------------------
-
-  const tipoMuscolare = await prisma.tipologia.create({
-    data: {
-      nome: 'Muscolare',
-    },
-  })
-
-  const tipoElettrica = await prisma.tipologia.create({
-    data: {
-      nome: 'Elettrica',
-    },
-  })
+  const tipoMuscolare = await prisma.tipologia.create({ data: { nome: 'Muscolare' } })
+  const tipoElettrica = await prisma.tipologia.create({ data: { nome: 'Elettrica' } })
 
   // ---------------------------
   // MODELLI
   // ---------------------------
-
-  const modRockrider = await prisma.modello.create({
-    data: { nome: 'Rockrider ST 540 (Mountain)' },
-  })
-
-  const modTriban = await prisma.modello.create({
-    data: { nome: 'Triban RC 120 (Gravel/Corsa)' },
-  })
-
-  const modElops = await prisma.modello.create({
-    data: { nome: 'Elops 520 (City Bike)' },
-  })
-
-  const modEST = await prisma.modello.create({
-    data: { nome: 'E-ST 900 (E-MTB Professionale)' },
-  })
-
-  const modELight = await prisma.modello.create({
-    data: { nome: 'E-Light Ultra (City E-Bike)' },
-  })
-
-  const modGraziella = await prisma.modello.create({
-    data: { nome: 'Graziella Oro Vintage' },
-  })
+  const modRockrider = await prisma.modello.create({ data: { nome: 'Rockrider ST 540 (Mountain)' } })
+  const modTriban = await prisma.modello.create({ data: { nome: 'Triban RC 120 (Gravel/Corsa)' } })
+  const modElops = await prisma.modello.create({ data: { nome: 'Elops 520 (City Bike)' } })
+  const modEST = await prisma.modello.create({ data: { nome: 'E-ST 900 (E-MTB Professionale)' } })
+  const modELight = await prisma.modello.create({ data: { nome: 'E-Light Ultra (City E-Bike)' } })
+  const modGraziella = await prisma.modello.create({ data: { nome: 'Graziella Oro Vintage' } })
 
   // ---------------------------
   // ACCESSORI
   // ---------------------------
-
-  const casco = await prisma.accessorio.create({
-    data: { nome: 'Casco di Sicurezza Premium' },
-  })
-
-  const lucchetto = await prisma.accessorio.create({
-    data: { nome: 'Lucchetto a Catena Rinforzata' },
-  })
-
-  const seggiolino = await prisma.accessorio.create({
-    data: { nome: 'Seggiolino Posteriore Bimbo' },
-  })
-
-  const borracce = await prisma.accessorio.create({
-    data: { nome: 'Kit Borraccia Termica e Supporto' },
-  })
-
-  const borse = await prisma.accessorio.create({
-    data: { nome: 'Borse Laterali Impermeabili' },
-  })
-
-  const luci = await prisma.accessorio.create({
-    data: { nome: 'Set Luci LED Notturne Extra' },
-  })
+  const casco = await prisma.accessorio.create({ data: { nome: 'Casco di Sicurezza Premium' } })
+  const lucchetto = await prisma.accessorio.create({ data: { nome: 'Lucchetto a Catena Rinforzata' } })
+  const seggiolino = await prisma.accessorio.create({ data: { nome: 'Seggiolino Posteriore Bimbo' } })
+  const borracce = await prisma.accessorio.create({ data: { nome: 'Kit Borraccia Termica e Supporto' } })
+  const borse = await prisma.accessorio.create({ data: { nome: 'Borse Laterali Impermeabili' } })
+  const luci = await prisma.accessorio.create({ data: { nome: 'Set Luci LED Notturne Extra' } })
 
   // ---------------------------
   // ASSICURAZIONI
   // ---------------------------
-
   const assBase = await prisma.assicurazione.create({
     data: {
       tipo: 'Protezione Base',
-      dettagli:
-        'Inclusa nel prezzo. Copre solo i danni strutturali spontanei del telaio.',
+      dettagli: 'Inclusa nel prezzo. Copre solo i danni strutturali spontanei del telaio.',
     },
   })
 
   const assSilver = await prisma.assicurazione.create({
     data: {
       tipo: 'Assicurazione Silver',
-      dettagli:
-        "Copre l'80% dei costi di riparazione in caso di cadute o danni accidentali.",
+      dettagli: "Copre l'80% dei costi di riparazione in caso di cadute o danni accidentali.",
     },
   })
 
   const assKasko = await prisma.assicurazione.create({
     data: {
       tipo: 'Kasko Totale Gold',
-      dettagli:
-        'Copertura al 100% contro qualsiasi danno, atti vandalici e furto con scasso.',
+      dettagli: 'Copertura al 100% contro qualsiasi danno, atti vandalici e furto con scasso.',
     },
   })
 
   // ---------------------------
   // LOCATION
   // ---------------------------
-
   const locCentro = await prisma.location.create({
-    data: {
-      nome: 'Sede Centrale - Piazza Duomo',
-      indirizzo: 'Piazza del Duomo 12, Milano',
-    },
+    data: { nome: 'Sede Centrale - Piazza Duomo', indirizzo: 'Piazza del Duomo 12, Milano' },
   })
-
   const locStazione = await prisma.location.create({
-    data: {
-      nome: 'Hub Stazione Centrale',
-      indirizzo: 'Via Vittorio Pisani 22, Milano',
-    },
+    data: { nome: 'Hub Stazione Centrale', indirizzo: 'Via Vittorio Pisani 22, Milano' },
   })
-
   const locParco = await prisma.location.create({
-    data: {
-      nome: 'Chiosco Parco Sempione',
-      indirizzo: 'Viale Camoens, Milano',
-    },
+    data: { nome: 'Chiosco Parco Sempione', indirizzo: 'Viale Camoens, Milano' },
   })
 
   // ---------------------------
   // BICICLETTE
   // ---------------------------
+  console.log('📦 Generazione parco biciclette...')
 
   const biciRockrider = await prisma.bicicletta.create({
     data: {
       modelloId: modRockrider.id,
-      tipologiaId: tipoMuscolare.id,
-      dimensione: {
+      quantitaElettrico: 0,
+      quantitaMuscolare: 7,
+      tipologie: { connect: [{ id: tipoMuscolare.id }] },
+      dimensioni: {
         create: [
           { taglia: 'S', numeroBiciclette: 2 },
           { taglia: 'M', numeroBiciclette: 3 },
@@ -231,8 +160,10 @@ async function main() {
   const biciTriban = await prisma.bicicletta.create({
     data: {
       modelloId: modTriban.id,
-      tipologiaId: tipoMuscolare.id,
-      dimensione: {
+      quantitaElettrico: 0,
+      quantitaMuscolare: 5,
+      tipologie: { connect: [{ id: tipoMuscolare.id }] },
+      dimensioni: {
         create: [
           { taglia: 'M', numeroBiciclette: 2 },
           { taglia: 'L', numeroBiciclette: 2 },
@@ -245,8 +176,10 @@ async function main() {
   const biciElops = await prisma.bicicletta.create({
     data: {
       modelloId: modElops.id,
-      tipologiaId: tipoMuscolare.id,
-      dimensione: {
+      quantitaElettrico: 0,
+      quantitaMuscolare: 5,
+      tipologie: { connect: [{ id: tipoMuscolare.id }] },
+      dimensioni: {
         create: [
           { taglia: 'S', numeroBiciclette: 2 },
           { taglia: 'M', numeroBiciclette: 3 },
@@ -258,22 +191,32 @@ async function main() {
   const biciGraziella = await prisma.bicicletta.create({
     data: {
       modelloId: modGraziella.id,
-      tipologiaId: tipoMuscolare.id,
-      dimensione: {
+      quantitaElettrico: 0,
+      quantitaMuscolare: 2,
+      tipologie: { connect: [{ id: tipoMuscolare.id }] },
+      dimensioni: {
         create: [{ taglia: 'Unica', numeroBiciclette: 2 }],
       },
     },
   })
 
+  // Esempio ibrido (Un modello che ha sia versione Elettrica che Muscolare)
   const biciEST = await prisma.bicicletta.create({
     data: {
       modelloId: modEST.id,
-      tipologiaId: tipoElettrica.id,
-      dimensione: {
+      quantitaElettrico: 5,
+      quantitaMuscolare: 3,
+      tipologie: { 
+        connect: [
+          { id: tipoElettrica.id },
+          { id: tipoMuscolare.id } // Collegati entrambi!
+        ] 
+      },
+      dimensioni: {
         create: [
-          { taglia: 'M', numeroBiciclette: 2 },
-          { taglia: 'L', numeroBiciclette: 2 },
-          { taglia: 'XL', numeroBiciclette: 1 },
+          { taglia: 'M', numeroBiciclette: 3 },
+          { taglia: 'L', numeroBiciclette: 3 },
+          { taglia: 'XL', numeroBiciclette: 2 },
         ],
       },
     },
@@ -282,8 +225,10 @@ async function main() {
   const biciELight = await prisma.bicicletta.create({
     data: {
       modelloId: modELight.id,
-      tipologiaId: tipoElettrica.id,
-      dimensione: {
+      quantitaElettrico: 6,
+      quantitaMuscolare: 0,
+      tipologie: { connect: [{ id: tipoElettrica.id }] },
+      dimensioni: {
         create: [
           { taglia: 'S', numeroBiciclette: 2 },
           { taglia: 'M', numeroBiciclette: 2 },
@@ -296,6 +241,7 @@ async function main() {
   // ---------------------------
   // PRENOTAZIONI
   // ---------------------------
+  console.log('📅 Generazione prenotazioni di test...')
 
   await prisma.prenotazione.create({
     data: {
@@ -337,12 +283,12 @@ async function main() {
     },
   })
 
-  console.log('✅ Seed completato')
+  console.log('✅ Seed completato con successo!')
 }
 
 main()
   .catch((error) => {
-    console.error(error)
+    console.error('❌ Errore durante l\'esecuzione del seeder:', error)
     process.exit(1)
   })
   .finally(async () => {

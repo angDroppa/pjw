@@ -7,7 +7,6 @@ datasource db {
   provider = "postgresql"
 }
 
-
 model Role {
   role  String @id
   users User[]
@@ -22,16 +21,7 @@ model User {
   roleName      String
   notifiche     Notifica[]
   prenotazioni  Prenotazione[]
-  id            Int            @id @default(autoincrement())
-  firstName     String
-  lastName      String
-  email         String         @unique
-  password      String
-  roleName      String
-  notifiche     Notifica[]
-  prenotazioni  Prenotazione[]
   refreshTokens RefreshToken[]
-  role          Role           @relation(fields: [roleName], references: [role])
   role          Role           @relation(fields: [roleName], references: [role])
 }
 
@@ -42,8 +32,6 @@ model RefreshToken {
   createdAt DateTime @default(now())
   userId    Int
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Bicicletta {
@@ -51,24 +39,26 @@ model Bicicletta {
   modelloId   Int
   modello     Modello   @relation(fields: [modelloId], references: [id])
 
-  tipologiaId Int
-  tipologia   Tipologia @relation(fields: [tipologiaId], references: [id])
+  // CAMBIAMENTO QUI: Relazione molti-a-molti implicita (diventa un array)
+  tipologie   Tipologia[] 
 
-  dimensione Dimensione[]
-
+  dimensioni   Dimensione[]
   prenotazioni Prenotazione[]
+
+  quantitaElettrico Int
+  quantitaMuscolare Int
 }
 
 model Modello {
-  id          Int          @id @default(autoincrement())
-  nome        String
+  id         Int          @id @default(autoincrement())
+  nome       String
   biciclette Bicicletta[]
 }
 
 model Tipologia {
-  id          Int          @id @default(autoincrement())
-  nome        String
-  biciclette Bicicletta[]
+  id         Int          @id @default(autoincrement())
+  nome       String // Esempi: "Elettrica", "Muscolare", "Mountain Bike"
+  biciclette Bicicletta[] // Relazione molti-a-molti speculare
 }
 
 model Prenotazione {
@@ -86,24 +76,23 @@ model Prenotazione {
   locationId      Int
   location        Location   @relation(fields: [locationId], references: [id], onDelete: Cascade)
 
-  // Spostati qui per gestire la configurazione dinamica dell'ordine (Product Card)
   coperturaId     Int
   copertura       Assicurazione @relation(fields: [coperturaId], references: [id], onDelete: Cascade)
 
-  accessori       Accessorio[]  // Relazione molti-a-molti implicita sulla prenotazione
+  accessori       Accessorio[]  
 }
 
 model Accessorio {
   id           Int            @id @default(autoincrement())
   nome         String
-  prenotazioni Prenotazione[] // Legato alle prenotazioni, non più alle biciclette
+  prenotazioni Prenotazione[] 
 }
 
 model Assicurazione {
   id           Int            @id @default(autoincrement())
   tipo         String
   dettagli     String
-  prenotazioni Prenotazione[] // Legato alle prenotazioni, non più alle biciclette
+  prenotazioni Prenotazione[] 
 }
 
 model Location {
@@ -121,10 +110,10 @@ model Notifica {
 }
 
 model Dimensione {
-  id Int          @id @default(autoincrement())
+  id           Int        @id @default(autoincrement())
   biciclettaId Int  
-  bicicletta      Bicicletta @relation(fields: [biciclettaId], references: [id], onDelete: Cascade)        
+  bicicletta   Bicicletta @relation(fields: [biciclettaId], references: [id], onDelete: Cascade)        
 
-  taglia String
+  taglia           String
   numeroBiciclette Int
 }

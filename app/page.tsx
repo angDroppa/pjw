@@ -2,11 +2,8 @@
 import { productsApi } from "@/lib/axios/productsServices";
 import ProductCard from "./components/ProductCard";
 
-// Definiamo l'interfaccia basata sul tuo JSON reale + la populate di modello e tipologia
-
-
 export default async function Home() {
-  // Esegue il fetch sul server (grazie alla separazione architetturale che abbiamo fatto)
+  // Esegue il fetch sul server con le nuove relazioni incluse
   const products = await productsApi.getProducts();
   console.log("Prodotti caricati sul server:", products);
 
