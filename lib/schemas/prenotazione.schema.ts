@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi'
 import { LocationSchema } from './location.schema'
-import { BiciclettaDetailSchema } from './bicicletta.schema'
+import { BiciclettaSchema } from './bicicletta.schema'
 
 extendZodWithOpenApi(z)
 
@@ -16,7 +16,7 @@ export const PrenotazioneSchema = z.object({
 })
 
 export const PrenotazioneDetailSchema = PrenotazioneSchema.extend({
-  bicicletta: BiciclettaDetailSchema,
+  bicicletta: BiciclettaSchema,
   location: LocationSchema,
 })
 

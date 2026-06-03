@@ -1,4 +1,3 @@
-// prisma/seed.ts
 import { PrismaPg } from '@prisma/adapter-pg'
 import { Pool } from 'pg'
 import 'dotenv/config'
@@ -10,174 +9,177 @@ const adapter = new PrismaPg(pool)
 const prisma = new PrismaClient({ adapter })
 
 async function main() {
-  console.log('🌱 Avvio del Super Seeder (Popolamento dati intensivo)...')
+  console.log('🌱 Avvio del Seeder...')
 
-   const password = await bcrypt.hash('password123', 10)
-  // 1. CREAZIONE RUOLI
-  const adminRole = await prisma.role.upsert({
-    where: { role: 'ADMIN' },
-    update: {},
-    create: { role: 'ADMIN' },
-  })
-  const userRole = await prisma.role.upsert({
-    where: { role: 'USER' },
-    update: {},
-    create: { role: 'USER' },
-  })
+  const password = await bcrypt.hash('password123', 10)
 
-  // 2. CREAZIONE UTENTI DI TEST (Clienti e Admin)
+  // 1. RUOLI
+  await prisma.role.upsert({ where: { role: 'ADMIN' }, update: {}, create: { role: 'ADMIN' } })
+  await prisma.role.upsert({ where: { role: 'USER' },  update: {}, create: { role: 'USER' } })
+
+  // 2. UTENTI
   const utente1 = await prisma.user.upsert({
     where: { email: 'mario.rossi@example.com' },
-    update: {},
-    create: {
-      firstName: 'Mario',
-      lastName: 'Rossi',
-      email: 'mario.rossi@example.com',
-      password: password,
-      roleName: 'USER',
-    },
+    update: { password },
+    create: { firstName: 'Mario', lastName: 'Rossi', email: 'mario.rossi@example.com', password, roleName: 'USER' },
   })
-
   const utente2 = await prisma.user.upsert({
     where: { email: 'giulia.bianchi@example.com' },
-    update: {},
-    create: {
-      firstName: 'Giulia',
-      lastName: 'Bianchi',
-      email: 'giulia.bianchi@example.com',
-      password: password,
-      roleName: 'USER',
-    },
+    update: { password },
+    create: { firstName: 'Giulia', lastName: 'Bianchi', email: 'giulia.bianchi@example.com', password, roleName: 'USER' },
   })
-
-  const admin = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: 'admin@bici-noleggio.it' },
-    update: {},
-    create: {
-      firstName: 'Alessandro',
-      lastName: 'Staff',
-      email: 'admin@bici-noleggio.it',
-      password: password,
-      roleName: 'ADMIN',
+    update: { password },
+    create: { firstName: 'Alessandro', lastName: 'Staff', email: 'admin@bici-noleggio.it', password, roleName: 'ADMIN' },
+  })
+
+  // 3. TIPOLOGIE
+  const tipoMuscolare = await prisma.tipologia.upsert({ where: { id: 1 }, update: {}, create: { nome: 'Muscolare' } })
+  const tipoElettrica = await prisma.tipologia.upsert({ where: { id: 2 }, update: {}, create: { nome: 'Elettrica' } })
+
+  // 4. MODELLI
+  const modRockrider = await prisma.modello.upsert({ where: { id: 1 }, update: {}, create: { nome: 'Rockrider ST 540 (Mountain)' } })
+  const modTriban    = await prisma.modello.upsert({ where: { id: 2 }, update: {}, create: { nome: 'Triban RC 120 (Gravel/Corsa)' } })
+  const modElops     = await prisma.modello.upsert({ where: { id: 3 }, update: {}, create: { nome: 'Elops 520 (City Bike)' } })
+  const modE_ST      = await prisma.modello.upsert({ where: { id: 4 }, update: {}, create: { nome: 'E-ST 900 (E-MTB Professionale)' } })
+  const modE_Lght    = await prisma.modello.upsert({ where: { id: 5 }, update: {}, create: { nome: 'E-Light Ultra (City E-Bike)' } })
+  const modGraziella = await prisma.modello.upsert({ where: { id: 6 }, update: {}, create: { nome: 'Graziella Oro Vintage' } })
+
+  // 5. ACCESSORI
+  const casco      = await prisma.accessorio.upsert({ where: { id: 1 }, update: {}, create: { nome: 'Casco di Sicurezza Premium' } })
+  const lucchetto  = await prisma.accessorio.upsert({ where: { id: 2 }, update: {}, create: { nome: 'Lucchetto a Catena Rinforzata' } })
+  const seggiolino = await prisma.accessorio.upsert({ where: { id: 3 }, update: {}, create: { nome: 'Seggiolino Posteriore Bimbo' } })
+  const borracce   = await prisma.accessorio.upsert({ where: { id: 4 }, update: {}, create: { nome: 'Kit Borraccia Termica e Supporto' } })
+  const borse      = await prisma.accessorio.upsert({ where: { id: 5 }, update: {}, create: { nome: 'Borse Laterali Impermeabili' } })
+  const luci       = await prisma.accessorio.upsert({ where: { id: 6 }, update: {}, create: { nome: 'Set Luci LED Notturne Extra' } })
+
+  // 6. ASSICURAZIONI
+  const assBase   = await prisma.assicurazione.upsert({ where: { id: 1 }, update: {}, create: { tipo: 'Protezione Base',     dettagli: 'Inclusa nel prezzo. Copre solo i danni strutturali spontanei del telaio.' } })
+  const assSilver = await prisma.assicurazione.upsert({ where: { id: 2 }, update: {}, create: { tipo: 'Assicurazione Silver', dettagli: "Copre l'80% dei costi di riparazione in caso di cadute o danni accidentali." } })
+  const assKasko  = await prisma.assicurazione.upsert({ where: { id: 3 }, update: {}, create: { tipo: 'Kasko Totale Gold',    dettagli: 'Copertura al 100% contro qualsiasi danno, atti vandalici e furto con scasso.' } })
+
+  // 7. LOCATION
+  const locCentro   = await prisma.location.upsert({ where: { id: 1 }, update: {}, create: { nome: 'Sede Centrale - Piazza Duomo', indirizzo: 'Piazza del Duomo 12, Milano' } })
+  const locStazione = await prisma.location.upsert({ where: { id: 2 }, update: {}, create: { nome: 'Hub Stazione Centrale',        indirizzo: 'Via Vittorio Pisani 22, Milano' } })
+  const locParco    = await prisma.location.upsert({ where: { id: 3 }, update: {}, create: { nome: 'Chiosco Parco Sempione',        indirizzo: 'Viale Camoens, Milano' } })
+
+  // 8. BICICLETTE + DIMENSIONI
+  // Ogni bicicletta è un "modello fisico" con le sue taglie disponibili e quantità
+  console.log('🚲 Generazione parco biciclette con dimensioni...')
+
+  const biciRockrider = await prisma.bicicletta.create({
+    data: {
+      modelloId: modRockrider.id,
+      tipologiaId: tipoMuscolare.id,
+      dimesione: {
+        create: [
+          { taglia: 'S', numeroBiciclette: 2 },
+          { taglia: 'M', numeroBiciclette: 3 },
+          { taglia: 'L', numeroBiciclette: 2 },
+        ],
+      },
     },
   })
 
-  // 3. LE DUE TIPOLOGIE RICHIESTE (Muscolare ed Elettrica)
-  const tipoMuscolare = await prisma.tipologia.create({ data: { nome: 'Muscolare' } })
-  const tipoElettrica = await prisma.tipologia.create({ data: { nome: 'Elettrica' } })
-
-  // 4. CREAZIONE MODELLI (I brand e i nomi commerciali delle linee di bici)
-  const modRockrider  = await prisma.modello.create({ data: { nome: 'Rockrider ST 540 (Mountain)' } })
-  const modTriban     = await prisma.modello.create({ data: { nome: 'Triban RC 120 (Gravel/Corsa)' } })
-  const modElops      = await prisma.modello.create({ data: { nome: 'Elops 520 (City Bike)' } })
-  const modE_ST       = await prisma.modello.create({ data: { nome: 'E-ST 900 (E-MTB Professionale)' } })
-  const modE_Lght     = await prisma.modello.create({ data: { nome: 'E-Light Ultra (City E-Bike)' } })
-  const modGraziella  = await prisma.modello.create({ data: { nome: 'Graziella Oro Vintage' } })
-
-  // 5. CREAZIONE ACCESSORI (Selezionabili nella Product Card in fase di prenotazione)
-  const casco       = await prisma.accessorio.create({ data: { nome: 'Casco di Sicurezza Premium' } })
-  const lucchetto   = await prisma.accessorio.create({ data: { nome: 'Lucchetto a Catena Rinforzata' } })
-  const seggiolino  = await prisma.accessorio.create({ data: { nome: 'Seggiolino Posteriore Bimbo' } })
-  const borracce    = await prisma.accessorio.create({ data: { nome: 'Kit Borraccia Termica e Supporto' } })
-  const borse       = await prisma.accessorio.create({ data: { nome: 'Borse Laterali Impermeabili' } })
-  const luci        = await prisma.accessorio.create({ data: { nome: 'Set Luci LED Notturne Extra' } })
-
-  // 6. CREAZIONE ASSICURAZIONI / COPERTURE (Selezionabili nella Product Card)
-  const assBase = await prisma.assicurazione.create({
-    data: { tipo: 'Protezione Base', dettagli: 'Inclusa nel prezzo. Copre solo i danni strutturali spontanei del telaio.' },
-  })
-  const assSilver = await prisma.assicurazione.create({
-    data: { tipo: 'Assicurazione Silver', dettagli: 'Copre l\'80% dei costi di riparazione in caso di cadute o danni accidentali.' },
-  })
-  const assKasko = await prisma.assicurazione.create({
-    data: { tipo: 'Kasko Totale Gold', dettagli: 'Copertura al 100% contro qualsiasi danno, atti vandalici e furto con scasso.' },
+  const biciTriban = await prisma.bicicletta.create({
+    data: {
+      modelloId: modTriban.id,
+      tipologiaId: tipoMuscolare.id,
+      dimesione: {
+        create: [
+          { taglia: 'M',  numeroBiciclette: 2 },
+          { taglia: 'L',  numeroBiciclette: 2 },
+          { taglia: 'XL', numeroBiciclette: 1 },
+        ],
+      },
+    },
   })
 
-  // 7. CREAZIONE LOCATION DI RITIRO/CONSEGNA
-  const locCentro = await prisma.location.create({
-    data: { nome: 'Sede Centrale - Piazza Duomo', indirizzo: 'Piazza del Duomo 12, Milano' },
+  const biciElops = await prisma.bicicletta.create({
+    data: {
+      modelloId: modElops.id,
+      tipologiaId: tipoMuscolare.id,
+      dimesione: {
+        create: [
+          { taglia: 'S', numeroBiciclette: 2 },
+          { taglia: 'M', numeroBiciclette: 3 },
+        ],
+      },
+    },
   })
-  const locStazione = await prisma.location.create({
-    data: { nome: 'Hub Stazione Centrale', indirizzo: 'Via Vittorio Pisani 22, Milano' },
+
+  const biciGraziella = await prisma.bicicletta.create({
+    data: {
+      modelloId: modGraziella.id,
+      tipologiaId: tipoMuscolare.id,
+      dimesione: {
+        create: [
+          { taglia: 'Unica', numeroBiciclette: 2 },
+        ],
+      },
+    },
   })
-  const locParco = await prisma.location.create({
-    data: { nome: 'Chiosco Parco Sempione', indirizzo: 'Viale Camoens, Milano' },
+
+  const biciE_ST = await prisma.bicicletta.create({
+    data: {
+      modelloId: modE_ST.id,
+      tipologiaId: tipoElettrica.id,
+      dimesione: {
+        create: [
+          { taglia: 'M',  numeroBiciclette: 2 },
+          { taglia: 'L',  numeroBiciclette: 2 },
+          { taglia: 'XL', numeroBiciclette: 1 },
+        ],
+      },
+    },
   })
 
-  // 8. UN BEL CATALOGO LUNGO DI BICICLETTE "NUDE" (16 Bici Totali)
-  console.log('🚲 Generazione del parco biciclette nel catalogo...')
-  
-  const parcoBiciDati = [
-    // --- BICI MUSCOLARI ---
-    { dimensione: 'S', modelloId: modRockrider.id, tipologiaId: tipoMuscolare.id },
-    { dimensione: 'M', modelloId: modRockrider.id, tipologiaId: tipoMuscolare.id },
-    { dimensione: 'M', modelloId: modRockrider.id, tipologiaId: tipoMuscolare.id },
-    { dimensione: 'L', modelloId: modRockrider.id, tipologiaId: tipoMuscolare.id },
-    
-    { dimensione: 'M', modelloId: modTriban.id,    tipologiaId: tipoMuscolare.id },
-    { dimensione: 'L', modelloId: modTriban.id,    tipologiaId: tipoMuscolare.id },
-    { dimensione: 'XL', modelloId: modTriban.id,   tipologiaId: tipoMuscolare.id },
+  const biciE_Lght = await prisma.bicicletta.create({
+    data: {
+      modelloId: modE_Lght.id,
+      tipologiaId: tipoElettrica.id,
+      dimesione: {
+        create: [
+          { taglia: 'S', numeroBiciclette: 2 },
+          { taglia: 'M', numeroBiciclette: 2 },
+          { taglia: 'L', numeroBiciclette: 2 },
+        ],
+      },
+    },
+  })
 
-    { dimensione: 'S', modelloId: modElops.id,     tipologiaId: tipoMuscolare.id },
-    { dimensione: 'M', modelloId: modElops.id,     tipologiaId: tipoMuscolare.id },
-    
-    { dimensione: 'Unica', modelloId: modGraziella.id, tipologiaId: tipoMuscolare.id },
-    { dimensione: 'Unica', modelloId: modGraziella.id, tipologiaId: tipoMuscolare.id },
+  // 9. PRENOTAZIONI
+  console.log('📅 Generazione prenotazioni dimostrative...')
 
-    // --- BICI ELETTRICHE ---
-    { dimensione: 'M', modelloId: modE_ST.id,      tipologiaId: tipoElettrica.id },
-    { dimensione: 'L', modelloId: modE_ST.id,      tipologiaId: tipoElettrica.id },
-    { dimensione: 'XL', modelloId: modE_ST.id,     tipologiaId: tipoElettrica.id },
-
-    { dimensione: 'S', modelloId: modE_Lght.id,    tipologiaId: tipoElettrica.id },
-    { dimensione: 'M', modelloId: modE_Lght.id,    tipologiaId: tipoElettrica.id },
-    { dimensione: 'L', modelloId: modE_Lght.id,    tipologiaId: tipoElettrica.id },
-  ]
-
-  // Salviamo le bici nel DB ciclando l'array
-  const biciSalvate = []
-  for (const datiBici of parcoBiciDati) {
-    const bici = await prisma.bicicletta.create({ data: datiBici })
-    biciSalvate.push(bici)
-  }
-
-  // 9. CREAZIONE DI QUALCHE PRENOTAZIONE DI STORICO (Giusto per popolare il DB)
-  console.log('📅 Generazione di alcune prenotazioni dimostrative...')
-  
-  // Prenotazione 1: Mario Rossi prenota una e-bike (biciSalvate[12] -> E-ST M) con Kasko e Accessori
   await prisma.prenotazione.create({
     data: {
-      dataRitiro: new Date('2026-06-10T09:00:00Z'),
+      dataRitiro:      new Date('2026-06-10T09:00:00Z'),
       dataOreConsegna: new Date('2026-06-12T18:00:00Z'),
-      dataPickUp: new Date('2026-06-10T09:15:00Z'),
-      utenteId: utente1.id,
-      biciclettaId: biciSalvate[12].id, 
-      locationId: locCentro.id,
-      coperturaId: assKasko.id,
-      accessori: {
-        connect: [{ id: casco.id }, { id: lucchetto.id }]
-      }
-    }
+      dataPickUp:      new Date('2026-06-10T09:15:00Z'),
+      utenteId:     utente1.id,
+      biciclettaId: biciE_ST.id,
+      locationId:   locCentro.id,
+      coperturaId:  assKasko.id,
+      accessori: { connect: [{ id: casco.id }, { id: lucchetto.id }] },
+    },
   })
 
-  // Prenotazione 2: Giulia Bianchi prenota una City Bike Muscolare con seggiolino e borsa
   await prisma.prenotazione.create({
     data: {
-      dataRitiro: new Date('2026-06-15T10:00:00Z'),
+      dataRitiro:      new Date('2026-06-15T10:00:00Z'),
       dataOreConsegna: new Date('2026-06-15T20:00:00Z'),
-      dataPickUp: new Date('2026-06-15T10:05:00Z'),
-      utenteId: utente2.id,
-      biciclettaId: biciSalvate[7].id, // Elops S
-      locationId: locParco.id,
-      coperturaId: assSilver.id,
-      accessori: {
-        connect: [{ id: seggiolino.id }, { id: borse.id }]
-      }
-    }
+      dataPickUp:      new Date('2026-06-15T10:05:00Z'),
+      utenteId:     utente2.id,
+      biciclettaId: biciElops.id,
+      locationId:   locParco.id,
+      coperturaId:  assSilver.id,
+      accessori: { connect: [{ id: seggiolino.id }, { id: borse.id }] },
+    },
   })
 
-  console.log(`✅ Database popolato con successo!`);
-  console.log(`📊 Riepilogo: 3 Utenti, 2 Tipologie, 6 Modelli, 6 Accessori, 3 Coperture, 16 Biciclette, 2 Prenotazioni.`);
+  console.log('✅ Database popolato con successo!')
+  console.log('📊 Riepilogo: 3 Utenti, 2 Tipologie, 6 Modelli, 6 Accessori, 3 Coperture, 3 Location, 6 Biciclette, 17 Dimensioni, 2 Prenotazioni.')
 }
 
 main()

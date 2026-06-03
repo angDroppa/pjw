@@ -40,13 +40,13 @@ model RefreshToken {
 
 model Bicicletta {
   id          Int       @id @default(autoincrement())
-  dimensione  String
-
   modelloId   Int
   modello     Modello   @relation(fields: [modelloId], references: [id])
 
   tipologiaId Int
   tipologia   Tipologia @relation(fields: [tipologiaId], references: [id])
+
+  dimesione Dimensione[]
 
   prenotazioni Prenotazione[]
 }
@@ -110,4 +110,13 @@ model Notifica {
   messaggio String
   utenteId  Int
   utente    User   @relation(fields: [utenteId], references: [id])
+}
+
+model Dimensione {
+  id Int          @id @default(autoincrement())
+  biciclettaId Int  
+  bicicletta      Bicicletta @relation(fields: [biciclettaId], references: [id], onDelete: Cascade)        
+
+  taglia String
+  numeroBiciclette Int
 }
