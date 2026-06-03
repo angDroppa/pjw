@@ -3,6 +3,7 @@ import { PrismaPg } from '@prisma/adapter-pg'
 import { Pool } from 'pg'
 import 'dotenv/config'
 import { PrismaClient } from '@/app/generated/prisma/client'
+import bcrypt from 'bcryptjs'
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 const adapter = new PrismaPg(pool)
@@ -11,6 +12,7 @@ const prisma = new PrismaClient({ adapter })
 async function main() {
   console.log('🌱 Avvio del Super Seeder (Popolamento dati intensivo)...')
 
+   const password = await bcrypt.hash('password123', 10)
   // 1. CREAZIONE RUOLI
   const adminRole = await prisma.role.upsert({
     where: { role: 'ADMIN' },
@@ -31,7 +33,7 @@ async function main() {
       firstName: 'Mario',
       lastName: 'Rossi',
       email: 'mario.rossi@example.com',
-      password: 'password_sicura_1',
+      password: password,
       roleName: 'USER',
     },
   })
@@ -43,7 +45,7 @@ async function main() {
       firstName: 'Giulia',
       lastName: 'Bianchi',
       email: 'giulia.bianchi@example.com',
-      password: 'password_sicura_2',
+      password: password,
       roleName: 'USER',
     },
   })
@@ -55,7 +57,7 @@ async function main() {
       firstName: 'Alessandro',
       lastName: 'Staff',
       email: 'admin@bici-noleggio.it',
-      password: 'super_admin_pass',
+      password: password,
       roleName: 'ADMIN',
     },
   })
