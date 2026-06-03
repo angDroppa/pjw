@@ -45,8 +45,6 @@ model Bicicletta {
   dimensioni   Dimensione[]
   prenotazioni Prenotazione[]
 
-  quantitaElettrico Int
-  quantitaMuscolare Int
 }
 
 model Modello {
@@ -115,5 +113,6 @@ model Dimensione {
   bicicletta   Bicicletta @relation(fields: [biciclettaId], references: [id], onDelete: Cascade)        
 
   taglia           String
-  numeroBiciclette Int
+  quantitaElettrico Int
+  quantitaMuscolare Int
 }

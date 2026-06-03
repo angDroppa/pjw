@@ -14,7 +14,10 @@ export const DimensioneSchema = z.object({
   id: z.number().openapi({ example: 1 }),
   biciclettaId: z.number().openapi({ example: 1 }),
   taglia: z.string().openapi({ example: 'S' }),
-  numeroBiciclette: z.number().openapi({ example: 5 }),
+  
+  // ✅ MODIFICATO: Rimosso numeroBiciclette e aggiunte le due quantità separate
+  quantitaElettrico: z.number().openapi({ example: 2 }),
+  quantitaMuscolare: z.number().openapi({ example: 5 }),
 })
 
 /**
@@ -27,14 +30,10 @@ export const BiciclettaSchema = z.object({
   modelloId: z.number().openapi({ example: 1 }),
   modello: ModelloSchema,
   
-  // 1. MODIFICATO: Ora è un array di tipologie (Many-to-Many)
+  // Array di tipologie (Many-to-Many)
   tipologie: z.array(TipologiaSchema),
 
-  // 2. AGGIUNTO: Nuovi campi quantità obbligatori (senza accenti)
-  quantitaElettrico: z.number().openapi({ example: 5 }),
-  quantitaMuscolare: z.number().openapi({ example: 3 }),
-
-  // L'array delle dimensioni (questo andava già bene)
+  // L'array delle dimensioni (ora eredita i nuovi campi quantita da DimensioneSchema)
   dimensioni: z.array(
     DimensioneSchema.omit({ biciclettaId: true })
   ),
@@ -48,15 +47,12 @@ export const BiciclettaSchema = z.object({
 export const BiciclettaInputSchema = z.object({
   modelloId: z.number().openapi({ example: 1 }),
   
-  // Ora passi un array di ID per connettere le tipologie (es: [1] o [1, 2])
+  // Array di ID per connettere le tipologie (es: [1] o [1, 2])
   tipologieIds: z.array(z.number()).openapi({ example: [1, 2] }),
-  
-  quantitaElettrico: z.number().default(0).openapi({ example: 5 }),
-  quantitaMuscolare: z.number().default(0).openapi({ example: 3 }),
 })
 
 export const CreateBiciclettaSchema = BiciclettaInputSchema
-export const UpdateBiciclettaSchema = BiciclettaInputSchema.partial() // partial permette modifiche parziali in update
+export const UpdateBiciclettaSchema = BiciclettaInputSchema.partial()
 
 /**
  * -------------------------

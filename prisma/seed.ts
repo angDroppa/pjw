@@ -144,14 +144,12 @@ async function main() {
   const biciRockrider = await prisma.bicicletta.create({
     data: {
       modelloId: modRockrider.id,
-      quantitaElettrico: 0,
-      quantitaMuscolare: 7,
       tipologie: { connect: [{ id: tipoMuscolare.id }] },
       dimensioni: {
         create: [
-          { taglia: 'S', numeroBiciclette: 2 },
-          { taglia: 'M', numeroBiciclette: 3 },
-          { taglia: 'L', numeroBiciclette: 2 },
+          { taglia: 'S', quantitaElettrico: 0, quantitaMuscolare: 2 },
+          { taglia: 'M', quantitaElettrico: 0, quantitaMuscolare: 3 },
+          { taglia: 'L', quantitaElettrico: 0, quantitaMuscolare: 2 },
         ],
       },
     },
@@ -160,14 +158,12 @@ async function main() {
   const biciTriban = await prisma.bicicletta.create({
     data: {
       modelloId: modTriban.id,
-      quantitaElettrico: 0,
-      quantitaMuscolare: 5,
       tipologie: { connect: [{ id: tipoMuscolare.id }] },
       dimensioni: {
         create: [
-          { taglia: 'M', numeroBiciclette: 2 },
-          { taglia: 'L', numeroBiciclette: 2 },
-          { taglia: 'XL', numeroBiciclette: 1 },
+          { taglia: 'M', quantitaElettrico: 0, quantitaMuscolare: 2 },
+          { taglia: 'L', quantitaElettrico: 0, quantitaMuscolare: 2 },
+          { taglia: 'XL', quantitaElettrico: 0, quantitaMuscolare: 1 },
         ],
       },
     },
@@ -176,13 +172,11 @@ async function main() {
   const biciElops = await prisma.bicicletta.create({
     data: {
       modelloId: modElops.id,
-      quantitaElettrico: 0,
-      quantitaMuscolare: 5,
       tipologie: { connect: [{ id: tipoMuscolare.id }] },
       dimensioni: {
         create: [
-          { taglia: 'S', numeroBiciclette: 2 },
-          { taglia: 'M', numeroBiciclette: 3 },
+          { taglia: 'S', quantitaElettrico: 0, quantitaMuscolare: 2 },
+          { taglia: 'M', quantitaElettrico: 0, quantitaMuscolare: 3 },
         ],
       },
     },
@@ -191,32 +185,31 @@ async function main() {
   const biciGraziella = await prisma.bicicletta.create({
     data: {
       modelloId: modGraziella.id,
-      quantitaElettrico: 0,
-      quantitaMuscolare: 2,
       tipologie: { connect: [{ id: tipoMuscolare.id }] },
       dimensioni: {
-        create: [{ taglia: 'Unica', numeroBiciclette: 2 }],
+        create: [
+          { taglia: 'Unica', quantitaElettrico: 0, quantitaMuscolare: 2 }
+        ],
       },
     },
   })
 
-  // Esempio ibrido (Un modello che ha sia versione Elettrica che Muscolare)
+  // Modello Ibrido (E-MTB Professionale)
   const biciEST = await prisma.bicicletta.create({
     data: {
       modelloId: modEST.id,
-      quantitaElettrico: 5,
-      quantitaMuscolare: 3,
       tipologie: { 
         connect: [
           { id: tipoElettrica.id },
-          { id: tipoMuscolare.id } // Collegati entrambi!
+          { id: tipoMuscolare.id }
         ] 
       },
       dimensioni: {
         create: [
-          { taglia: 'M', numeroBiciclette: 3 },
-          { taglia: 'L', numeroBiciclette: 3 },
-          { taglia: 'XL', numeroBiciclette: 2 },
+          // Ho distribuito le quantità (totale 5 elettriche e 3 muscolari) tra le taglie
+          { taglia: 'M', quantitaElettrico: 2, quantitaMuscolare: 1 },
+          { taglia: 'L', quantitaElettrico: 2, quantitaMuscolare: 1 },
+          { taglia: 'XL', quantitaElettrico: 1, quantitaMuscolare: 1 },
         ],
       },
     },
@@ -225,14 +218,12 @@ async function main() {
   const biciELight = await prisma.bicicletta.create({
     data: {
       modelloId: modELight.id,
-      quantitaElettrico: 6,
-      quantitaMuscolare: 0,
       tipologie: { connect: [{ id: tipoElettrica.id }] },
       dimensioni: {
         create: [
-          { taglia: 'S', numeroBiciclette: 2 },
-          { taglia: 'M', numeroBiciclette: 2 },
-          { taglia: 'L', numeroBiciclette: 2 },
+          { taglia: 'S', quantitaElettrico: 2, quantitaMuscolare: 0 },
+          { taglia: 'M', quantitaElettrico: 2, quantitaMuscolare: 0 },
+          { taglia: 'L', quantitaElettrico: 2, quantitaMuscolare: 0 },
         ],
       },
     },

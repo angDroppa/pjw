@@ -17,15 +17,15 @@ interface ConfiguratorProps {
 
 export default function ProductConfigurator({ product, onClose }: ConfiguratorProps) {
   const [selectedTaglia, setSelectedTaglia] = useState("");
-  const [selectedTipologia, setSelectedTipologia] = useState("");
+  const [selectedTipologia, setSelectedTipologia] = useState(""); // Contiene il nome o ID della tipologia
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedAccessori, setSelectedAccessori] = useState<number[]>([]);
 
-  // ✅ Stato per gli accessori reali dalla API
+  // Stato per gli accessori reali dalla API
   const [accessori, setAccessori] = useState<Accessorio[]>([]);
   const [loadingAccessori, setLoadingAccessori] = useState(true);
 
-  // ✅ Fetch degli accessori al mount del componente
+  // Fetch degli accessori al mount del componente
   useEffect(() => {
     const fetchAccessori = async () => {
       try {
@@ -49,6 +49,24 @@ export default function ProductConfigurator({ product, onClose }: ConfiguratorPr
     { id: 3, nome: "Chiosco Parco Sempione" }
   ];
 
+  // Helper per capire il testo della disponibilità dinamicamente nella select delle taglie
+  const getDisponibilitaTesto = (dimensione: any) => {
+    // Cerchiamo l'oggetto tipologia selezionato se esiste
+    const tipologiaSelezionata = product.tipologie?.find(t => String(t.id) === selectedTipologia);
+    
+    if (!tipologiaSelezionata) {
+      // Se non ha ancora scelto la tipologia, mostriamo il totale complessivo per informazione
+      const totale = (dimensione.quantitaElettrico || 0) + (dimensione.quantitaMuscolare || 0);
+      return `${totale} disponibili in totale`;
+    }
+
+    if (tipologiaSelezionata.nome.toLowerCase().includes("elettrica")) {
+      return `${dimensione.quantitaElettrico ?? 0} disponibili (Elettrica)`;
+    } else {
+      return `${dimensione.quantitaMuscolare ?? 0} disponibili (Muscolare)`;
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animated fadeIn duration-200">
       <div className="absolute inset-0" onClick={onClose} />
@@ -69,21 +87,18 @@ export default function ProductConfigurator({ product, onClose }: ConfiguratorPr
         {/* Form */}
         <form onSubmit={(e) => { e.preventDefault(); alert("Ordine salvato!"); onClose(); }} className="flex flex-col gap-4 text-sm">
           
-          {/* Taglie */}
+          {/* 1. Tipologia (Spostata sopra per riflettere la disponibilità delle taglie) */}
           <div>
-            <label className="block text-slate-300 font-semibold mb-1">1. Scegli la tua Taglia:</label>
-            <select required value={selectedTaglia} onChange={(e) => setSelectedTaglia(e.target.value)} className="w-full bg-slate-800 text-white border border-slate-700 rounded-lg p-2.5 focus:border-emerald-400 outline-none">
-              <option value="">Seleziona taglia...</option>
-              {product.dimensioni?.map((d) => (
-                <option key={d.id} value={d.taglia}>Taglia {d.taglia} ({d.numeroBiciclette} disponibili)</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Tipologia */}
-          <div>
-            <label className="block text-slate-300 font-semibold mb-1">2. Tipologia / Motore:</label>
-            <select required value={selectedTipologia} onChange={(e) => setSelectedTipologia(e.target.value)} className="w-full bg-slate-800 text-white border border-slate-700 rounded-lg p-2.5 focus:border-emerald-400 outline-none">
+            <label className="block text-slate-300 font-semibold mb-1">1. Tipologia / Motore:</label>
+            <select 
+              required 
+              value={selectedTipologia} 
+              onChange={(e) => {
+                setSelectedTipologia(e.target.value);
+                setSelectedTaglia(""); // Resetta la taglia se cambia il motore per evitare errori di stock
+              }} 
+              className="w-full bg-slate-800 text-white border border-slate-700 rounded-lg p-2.5 focus:border-emerald-400 outline-none"
+            >
               <option value="">Seleziona modalità...</option>
               {product.tipologie?.map((t) => (
                 <option key={t.id} value={t.id}>{t.nome}</option>
@@ -91,7 +106,35 @@ export default function ProductConfigurator({ product, onClose }: ConfiguratorPr
             </select>
           </div>
 
-          {/* Pickup Location */}
+          {/* 2. Taglie */}
+          <div>
+            <label className="block text-slate-300 font-semibold mb-1">2. Scegli la tua Taglia:</label>
+            <select 
+              required 
+              value={selectedTaglia} 
+              onChange={(e) => setSelectedTaglia(e.target.value)} 
+              className="w-full bg-slate-800 text-white border border-slate-700 rounded-lg p-2.5 focus:border-emerald-400 outline-none"
+            >
+              <option value="">Seleziona taglia...</option>
+              {product.dimensioni?.map((d) => {
+                const testoDispo = getDisponibilitaTesto(d);
+                
+                // Opzionale: disabilita la taglia se per quel motore specifico la quantità è 0
+                const tipologiaSelezionata = product.tipologie?.find(t => String(t.id) === selectedTipologia);
+                const isEsaurito = tipologiaSelezionata 
+                  ? (tipologiaSelezionata.nome.toLowerCase().includes("elettrica") ? d.quantitaElettrico === 0 : d.quantitaMuscolare === 0)
+                  : (d.quantitaElettrico + d.quantitaMuscolare === 0);
+
+                return (
+                  <option key={d.id} value={d.taglia} disabled={isEsaurito}>
+                    Taglia {d.taglia} — {testoDispo} {isEsaurito ? '(Esaurita)' : ''}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+
+          {/* 3. Pickup Location */}
           <div>
             <label className="block text-slate-300 font-semibold mb-1">3. Punto di Ritiro (Pickup):</label>
             <select required value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)} className="w-full bg-slate-800 text-white border border-slate-700 rounded-lg p-2.5 focus:border-emerald-400 outline-none">
@@ -102,7 +145,7 @@ export default function ProductConfigurator({ product, onClose }: ConfiguratorPr
             </select>
           </div>
 
-          {/* ✅ Accessori dalla API */}
+          {/* 4. Accessori Extra */}
           <div>
             <label className="block text-slate-300 font-semibold mb-1">4. Accessori Extra:</label>
             <div className="grid grid-cols-1 gap-2 bg-slate-800/40 p-3 rounded-lg border border-slate-800">
