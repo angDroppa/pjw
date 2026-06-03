@@ -18,3 +18,4 @@ export const authApi = {
     await api.post('/auth/logout', { refreshToken })
   },
 }
+
