@@ -46,7 +46,7 @@ model Bicicletta {
   tipologiaId Int
   tipologia   Tipologia @relation(fields: [tipologiaId], references: [id])
 
-  dimesione Dimensione[]
+  dimensione Dimensione[]
 
   prenotazioni Prenotazione[]
 }
