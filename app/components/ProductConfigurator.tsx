@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { Bicicletta } from "@/lib/schemas/bicicletta.schema";
+import api from "@/lib/axios";
+import { locationsApi } from "@/lib/axios/location";
+import { AppLocation } from "@/lib/schemas/location.schema";
 
 // Tipo per gli accessori che arrivano dalla API
 interface Accessorio {
@@ -43,11 +46,22 @@ export default function ProductConfigurator({ product, onClose }: ConfiguratorPr
     fetchAccessori();
   }, []);
 
+  //locations
   const locationsMock = [
     { id: 1, nome: "Sede Centrale - Piazza Duomo" },
     { id: 2, nome: "Hub Stazione Centrale" },
     { id: 3, nome: "Chiosco Parco Sempione" }
   ];
+
+ const [locations, setLocations] = useState<AppLocation[]>([])
+
+    useEffect(() => {
+    let active = true
+    locationsApi.getAll().then((data) => {
+      if (active) setLocations(data)
+    })
+    return () => { active = false }
+  }, [])
 
   // Helper per capire il testo della disponibilità dinamicamente nella select delle taglie
   const getDisponibilitaTesto = (dimensione: any) => {
@@ -139,7 +153,7 @@ export default function ProductConfigurator({ product, onClose }: ConfiguratorPr
             <label className="block text-slate-300 font-semibold mb-1">3. Punto di Ritiro (Pickup):</label>
             <select required value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)} className="w-full bg-slate-800 text-white border border-slate-700 rounded-lg p-2.5 focus:border-emerald-400 outline-none">
               <option value="">Seleziona un Hub...</option>
-              {locationsMock.map((loc) => (
+              {locations.map((loc) => (
                 <option key={loc.id} value={loc.id}>{loc.nome}</option>
               ))}
             </select>

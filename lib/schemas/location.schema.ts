@@ -11,5 +11,5 @@ export const LocationSchema = z.object({
 
 export const CreateLocationSchema = LocationSchema.omit({ id: true })
 
-export type Location = z.infer<typeof LocationSchema>
+export type AppLocation = z.infer<typeof LocationSchema>
 export type CreateLocation = z.infer<typeof CreateLocationSchema>

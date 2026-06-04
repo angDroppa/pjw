@@ -1,8 +1,9 @@
+import { AppLocation } from '../schemas/location.schema'
 import api from './index'
 
 export const locationsApi = {
-    getAll: async (): Promise<Location[]> => {
-        const response = await api.get<Location[]>('/location')
+    getAll: async (): Promise<AppLocation[]> => {
+        const response = await api.get<AppLocation[]>('/location')
         return response.data
     }
 }
