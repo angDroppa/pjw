@@ -55,15 +55,6 @@ export default function ProductConfigurator({
     { id: 3, nome: "Chiosco Parco Sempione" },
   ];
 
- const [locations, setLocations] = useState<AppLocation[]>([])
-
-    useEffect(() => {
-    let active = true
-    locationsApi.getAll().then((data) => {
-      if (active) setLocations(data)
-    })
-    return () => { active = false }
-  }, [])
 
   // Helper per capire il testo della disponibilità dinamicamente nella select delle taglie
   const getDisponibilitaTesto = (dimensione: any) => {
