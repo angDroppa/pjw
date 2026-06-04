@@ -1,5 +1,6 @@
 'use client'
 
+import api from '@/lib/axios';
 import { useState, useEffect, useCallback } from 'react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -34,23 +35,7 @@ interface Statistiche {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const API = '/api/backoffice'
-
-async function apiFetch(url: string) {
-  const res = await fetch(url)
-  if (!res.ok) throw new Error((await res.json()).error || 'Errore')
-  return res.json()
-}
-
-async function apiPost(body: object) {
-  const res = await fetch(API, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  })
-  if (!res.ok) throw new Error((await res.json()).error || 'Errore')
-  return res.json()
-}
+const API = '/backoffice'
 
 const statoLabel: Record<StatoPrenotazione, string> = {
   PENDING: 'In attesa',
@@ -166,19 +151,19 @@ function TabConfig({ negozi, accessori, assicurazioni, onSuccess, onError }: {
   const saveNeg = async (id: number, orig: Location) => {
     const d = editNeg[id] || {}
     try {
-      await apiPost({ action: 'update_config', shopId: id, ...d })
+      await api.post(API, { action: 'update_config', shopId: id, ...d })
       onSuccess('Negozio aggiornato')
     } catch (e: any) { onError(e.message) }
   }
   const saveAcc = async (id: number) => {
     try {
-      await apiPost({ action: 'update_accessorio', accessorioId: id, ...editAcc[id] })
+      await api.post(API, { action: 'update_accessorio', accessorioId: id, ...editAcc[id] })
       onSuccess('Accessorio aggiornato')
     } catch (e: any) { onError(e.message) }
   }
   const saveAss = async (id: number) => {
     try {
-      await apiPost({ action: 'update_assicurazione', assicurazioneId: id, ...editAss[id] })
+      await api.post(API, { action: 'update_assicurazione', assicurazioneId: id, ...editAss[id] })
       onSuccess('Assicurazione aggiornata')
     } catch (e: any) { onError(e.message) }
   }
@@ -299,7 +284,7 @@ function TabPrenotazioni({ negozi, onSuccess, onError }: {
       if (filtUtente) params.set('utente', filtUtente)
       if (filtData) params.set('data', filtData)
       if (filtLocation) params.set('locationId', filtLocation)
-      const data = await apiFetch(`${API}?${params}`)
+      const { data } = await api.get(`${API}?${params}`)
       setPrenotazioni(data)
     } catch (e: any) { onError(e.message) }
     finally { setLoading(false) }
@@ -311,7 +296,7 @@ function TabPrenotazioni({ negozi, onSuccess, onError }: {
     if (!modalPren) return
     setSaving(true)
     try {
-      await apiPost({ action: 'update_stato_prenotazione', prenotazioneId: modalPren.id, stato: nuovoStato, noteProblemi: note || undefined })
+      await api.post(API, { action: 'update_stato_prenotazione', prenotazioneId: modalPren.id, stato: nuovoStato, noteProblemi: note || undefined })
       onSuccess(`Stato aggiornato: ${statoLabel[nuovoStato]}`)
       setModalPren(null)
       load()
@@ -450,7 +435,7 @@ function TabStock({ negozi, onSuccess, onError, reload }: {
   const stockAction = async (locationId: number, biciclettaId: number, azione_stock: string) => {
     setLoading(true)
     try {
-      await apiPost({ action: 'update_stock', locationId, biciclettaId, azione_stock })
+      await api.post(API, { action: 'update_stock', locationId, biciclettaId, azione_stock })
       onSuccess('Stock aggiornato')
       reload()
     } catch (e: any) { onError(e.message) }
@@ -532,7 +517,7 @@ function TabStatistiche({ onError }: { onError: (m: string) => void }) {
       const params = new URLSearchParams({ action: 'statistiche' })
       if (da) params.set('da', da)
       if (a) params.set('a', a)
-      const data = await apiFetch(`${API}?${params}`)
+      const { data } = await api.get(`${API}?${params}`)
       setStats(data)
     } catch (e: any) { onError(e.message) }
     finally { setLoading(false) }
@@ -640,7 +625,7 @@ export default function BackofficePage() {
   const loadConfig = useCallback(async () => {
     setLoadingConfig(true)
     try {
-      const data = await apiFetch(`${API}?action=config`)
+      const { data } = await api.get(`${API}?action=config`)
       setConfig(data)
     } catch (e: any) {
       setToast({ msg: e.message, type: 'err' })

@@ -5,7 +5,7 @@ import { verifyAccessToken } from '@/lib/jwt'
 const ROOT_IS_PRIVATE = false  // ← commenta/decommenta per rendere la root privata o pubblica
 
 
-const protectedRoutes = ['/api/users']
+const protectedRoutes = ['/api/users', '/api/backoffice']
 const protectedPages = ['/dashboard']
 const authPages = ['/login', '/register']
 
