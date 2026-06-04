@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Bicicletta } from "@/lib/schemas/bicicletta.schema";
 import { locationsApi } from "@/lib/axios/location";
 import { AppLocation } from "@/lib/schemas/location.schema";
+import { useRouter } from "next/navigation";
 
 // Tipo per gli accessori che arrivano dalla API
 interface Accessorio {
@@ -21,6 +22,7 @@ export default function ProductConfigurator({
   product,
   onClose,
 }: ConfiguratorProps) {
+  const router = useRouter();
   const [selectedTaglia, setSelectedTaglia] = useState("");
   const [selectedTipologia, setSelectedTipologia] = useState(""); // Contiene il nome o ID della tipologia
   const [selectedLocation, setSelectedLocation] = useState("");
@@ -117,8 +119,7 @@ export default function ProductConfigurator({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            alert("Ordine salvato!");
-            onClose();
+            router.push("/checkout");
           }}
           className="flex flex-col gap-4 text-sm"
         >
