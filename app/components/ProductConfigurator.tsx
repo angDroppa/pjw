@@ -48,11 +48,13 @@ export default function ProductConfigurator({
     fetchAccessori();
   }, []);
 
+  //locations
   const locationsMock = [
     { id: 1, nome: "Sede Centrale - Piazza Duomo" },
     { id: 2, nome: "Hub Stazione Centrale" },
     { id: 3, nome: "Chiosco Parco Sempione" },
   ];
+
 
   // Helper per capire il testo della disponibilità dinamicamente nella select delle taglie
   const getDisponibilitaTesto = (dimensione: any) => {
