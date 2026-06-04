@@ -5,6 +5,8 @@ import axios from "axios"; // 👈 Usiamo Axios standard per il client
 import ProductCard from "./components/ProductCard";
 import ProductConfigurator from "./components/ProductConfigurator";
 import { Bicicletta } from "@/lib/schemas/bicicletta.schema";
+import { locationsApi } from "@/lib/axios/location";
+import { AppLocation } from "@/lib/schemas/location.schema";
 
 export default function Home() {
   const [products, setProducts] = useState<Bicicletta[]>([]);
@@ -20,6 +22,7 @@ export default function Home() {
       .catch(err => console.error("Errore caricamento prodotti:", err))
       .finally(() => setIsLoading(false));
   }, []);
+
 
   return (
     <main className="min-h-screen bg-slate-900 text-slate-100 py-12 px-4 sm:px-6 lg:px-8 relative">

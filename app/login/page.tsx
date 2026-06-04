@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import { authApi } from '@/lib/axios/auth'
 import { LoginSchema, type Login } from '@/lib/schemas/auth.schema'
 import { useAuthStore } from '@/lib/store/auth.store'
-import '../globals.css';
+import './globals.css';
 
 export default function LoginPage() {
   const router = useRouter()
