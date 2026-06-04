@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation'
 import { authApi } from '@/lib/axios/auth'
 import { LoginSchema, type Login } from '@/lib/schemas/auth.schema'
 import { useAuthStore } from '@/lib/store/auth.store'
-import './globals.css';
 
 export default function LoginPage() {
   const router = useRouter()
@@ -28,7 +27,12 @@ export default function LoginPage() {
     try {
       const { accessToken, refreshToken, user } = await authApi.login(data)
       setTokens(accessToken, refreshToken, user)
+      console.log(user)
+      if (user.roleName === 'ADMIN') {
+        router.push('/backoffice')
+      }else{
       router.push('/dashboard')
+      }
     } catch {
       // errore già gestito dall'interceptor axios
     } finally {
