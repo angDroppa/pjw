@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { authApi } from '@/lib/axios/auth'
-import { LoginSchema, type Login } from '@/lib/schemas/auth.schema'
+import { LoginSchema, type Login } from '@/lib/zodSchemas/auth.schema'
 import { useAuthStore } from '@/lib/store/auth.store'
 
 export default function LoginPage() {
@@ -27,12 +27,8 @@ export default function LoginPage() {
     try {
       const { accessToken, refreshToken, user } = await authApi.login(data)
       setTokens(accessToken, refreshToken, user)
-      console.log(user)
-      if (user.roleName === 'ADMIN') {
-        router.push('/backoffice')
-      }else{
-      router.push('/dashboard')
-      }
+      const hasPrenotazione = typeof window !== 'undefined' && localStorage.getItem('prenotazioneConfig')
+      router.push(hasPrenotazione ? '/checkout' : user.roleName === 'ADMIN' ? '/backoffice' : '/dashboard')
     } catch {
       // errore già gestito dall'interceptor axios
     } finally {

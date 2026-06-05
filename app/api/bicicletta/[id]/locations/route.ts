@@ -1,5 +1,3 @@
-// app/api/biciclette/[id]/locations/route.ts
-
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { BiciclettaLocationSchema } from '@/lib/zodSchemas/biciclettaLocation'

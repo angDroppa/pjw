@@ -2,8 +2,10 @@
 
 import { backofficeApi } from '@/lib/axios/backoffice'
 import { useState, useEffect, useCallback } from 'react'
-
-
+import { Location, UpdateLocation } from '@/lib/zodSchemas/location'
+import { Accessorio, UpdateAccessorio } from '@/lib/zodSchemas/accessorio'
+import { Assicurazione, UpdateAssicurazione } from '@/lib/zodSchemas/assicurazione'
+import { Toast, SectionTitle, Card, Btn, Field, Inp, Modal, InlineInput } from '../components/ui'
 
 const fmt = (n: number) => `€${n.toFixed(2)}`
 

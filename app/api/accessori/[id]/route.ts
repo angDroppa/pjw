@@ -1,6 +1,6 @@
 import prisma from '@/lib/prisma'
 import { NextResponse } from 'next/server'
-import { CreateAccessorioSchema } from '@/lib/schemas/accessorio.schema'
+import { CreateAccessorioSchema } from '@/lib/zodSchemas/accessorio'
 import { requireAuth } from '@/lib/auth-helper'
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {

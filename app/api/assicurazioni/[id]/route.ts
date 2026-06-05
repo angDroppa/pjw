@@ -1,6 +1,6 @@
 import prisma from '@/lib/prisma'
 import { NextResponse } from 'next/server'
-import { CreateAssicurazioneSchema } from '@/lib/schemas/assicurazione.schema'
+import { CreateAssicurazioneSchema } from '@/lib/zodSchemas/assicurazione'
 import { requireAuth } from '@/lib/auth-helper'
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {

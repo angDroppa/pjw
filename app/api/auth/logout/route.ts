@@ -8,13 +8,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Refresh token mancante' }, { status: 400 })
   }
 
-  // Elimina il token dal DB — se non esiste va bene lo stesso (già scaduto/eliminato)
   try {
     await prisma.refreshToken.delete({
       where: { token: body.refreshToken },
     })
   } catch {
-    // Token non trovato: nessun problema, il logout è comunque completato
+    // Token non trovato: nessun problema
   }
 
   return NextResponse.json({ message: 'Logout effettuato' })

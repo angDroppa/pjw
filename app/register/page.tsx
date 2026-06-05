@@ -9,12 +9,10 @@ import { authApi } from "@/lib/axios/auth";
 import {
   RegisterFormSchema,
   type RegisterForm,
-} from "@/lib/schemas/auth.schema";
-import { useAuthStore } from "@/lib/store/auth.store";
+} from "@/lib/zodSchemas/auth.schema";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { setTokens } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -30,11 +28,9 @@ export default function RegisterPage() {
     setIsLoading(true);
     try {
       const { confirmPassword, ...payload } = data;
-      const { accessToken, refreshToken, user } =
-        await authApi.register(payload);
-      setTokens(accessToken, refreshToken, user);
-      toast.success("Registrazione completata!");
-      router.push("/dashboard");
+      await authApi.register(payload);
+      toast.success("Registrazione effettuata! Controlla la tua email per attivare l'account.");
+      router.push("/login");
     } catch {
       // errore già gestito dall'interceptor axios
     } finally {

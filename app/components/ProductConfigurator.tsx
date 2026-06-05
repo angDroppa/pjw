@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { BiciclettaCatalog } from "@/lib/zodSchemas/bicicletta";
+import { BiciclettaCatalog, Alimentazione } from "@/lib/zodSchemas/bicicletta";
 import { BiciclettaLocationWithDetails } from "@/lib/zodSchemas/biciclettaLocation";
 import { bicicletteApi } from "@/lib/axios/bicicletta";
 import { useRouter } from "next/navigation";
@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 interface Accessorio {
   id: number;
   nome: string;
-  prezzo?: string;
+  prezzo?: number;
 }
 
 interface ConfiguratorProps {
@@ -24,8 +24,8 @@ export default function ProductConfigurator({ product, onClose }: ConfiguratorPr
   const [loadingStock, setLoadingStock] = useState(true);
 
   const [selectedSize, setSelectedSize] = useState<string>("");
+  const [selectedAlimentazione, setSelectedAlimentazione] = useState<Alimentazione | "">("");
   const [selectedLocationStock, setSelectedLocationStock] = useState<BiciclettaLocationWithDetails | null>(null);
-  const [selectedTipo, setSelectedTipo] = useState<"E" | "M" | "">("");
 
   const [accessori, setAccessori] = useState<Accessorio[]>([]);
   const [loadingAccessori, setLoadingAccessori] = useState(true);
@@ -47,44 +47,92 @@ export default function ProductConfigurator({ product, onClose }: ConfiguratorPr
       .finally(() => setLoadingAccessori(false));
   }, []);
 
-  // Reset a cascata quando cambia la selezione
   const handleSizeSelect = (size: string) => {
     setSelectedSize(size);
+    setSelectedAlimentazione("");
     setSelectedLocationStock(null);
-    setSelectedTipo("");
+  };
+
+  const handleAlimentazioneSelect = (alim: Alimentazione) => {
+    setSelectedAlimentazione(alim);
+    setSelectedLocationStock(null);
   };
 
   const handleLocationSelect = (stock: BiciclettaLocationWithDetails) => {
     setSelectedLocationStock(stock);
-    setSelectedTipo("");
   };
 
-  // Taglie uniche disponibili nello stock
+  // Unique sizes from stock
   const taglieDisponibili = [...new Map(
     stockData
-      .filter(s => s.numberE > 0 || s.numberM > 0)
+      .filter(s => s.quantita > 0)
       .map(s => [s.biciclettaSpecific.size, s.biciclettaSpecific])
-  ).values()]
+  ).values()];
 
-  // Location disponibili per la taglia selezionata
+  // Alimentazione options for selected size
+  const alimentazioniPerTaglia = [...new Set(
+    stockData
+      .filter(s => s.biciclettaSpecific.size === selectedSize && s.quantita > 0)
+      .map(s => s.biciclettaSpecific.alimentazione)
+  )];
+
+  // Locations that have the selected size + alimentazione in stock
   const locationPerTaglia = stockData.filter(
-    s => s.biciclettaSpecific.size === selectedSize && (s.numberE > 0 || s.numberM > 0)
-  )
+    s => s.biciclettaSpecific.size === selectedSize
+      && s.biciclettaSpecific.alimentazione === selectedAlimentazione
+      && s.quantita > 0
+  );
 
-  const canSubmit = selectedSize && selectedLocationStock && selectedTipo
+  const selectedSpecifica = selectedSize && selectedAlimentazione
+    ? stockData.find(
+        s => s.biciclettaSpecific.size === selectedSize
+          && s.biciclettaSpecific.alimentazione === selectedAlimentazione
+      )?.biciclettaSpecific
+    : null;
+
+  const canSubmit = selectedSize && selectedAlimentazione && selectedLocationStock;
+
+  function sendPrenotazione() {
+    if (!selectedSpecifica || !selectedLocationStock) return;
+
+    const config = {
+      prodotto: { id: product.id, nome: product.nome, tipologia: product.tipologia },
+      biciclettaSpecificId: selectedSpecifica.id,
+      biciclettaSpecific: {
+        size: selectedSpecifica.size,
+        alimentazione: selectedSpecifica.alimentazione,
+        prezzoGiornata: selectedSpecifica.prezzoGiornata,
+        prezzoMezzaGiornata: selectedSpecifica.prezzoMezzaGiornata,
+      },
+      locationId: selectedLocationStock.locationId,
+      location: { nome: selectedLocationStock.location.nome, indirizzo: selectedLocationStock.location.indirizzo },
+      alimentazione: selectedAlimentazione,
+      accessoriIds: selectedAccessori,
+      accessori: accessori.filter(a => selectedAccessori.includes(a.id)),
+    };
+    localStorage.setItem("prenotazioneConfig", JSON.stringify(config));
+    router.push("/checkout");
+  }
+
+  const tipologiaLabel: Record<string, string> = {
+    CITY: "City Bike",
+    MOUNTAIN: "Mountain Bike",
+    GRAVEL: "Gravel",
+    ROAD: "Road Bike",
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
       <div className="absolute inset-0" onClick={onClose} />
 
       <div className="relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl p-6 z-10 text-left overflow-y-auto max-h-[90vh]">
-        {/* Header */}
         <div className="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
           <div>
             <span className="text-xs text-emerald-400 font-bold uppercase tracking-wider">
               Configurazione
             </span>
-            <h3 className="text-xl font-extrabold text-white">{product.type}</h3>
+            <h3 className="text-xl font-extrabold text-white">{product.nome}</h3>
+            <p className="text-xs text-slate-400">{tipologiaLabel[product.tipologia] ?? product.tipologia}</p>
           </div>
           <button
             onClick={onClose}
@@ -95,7 +143,7 @@ export default function ProductConfigurator({ product, onClose }: ConfiguratorPr
         </div>
 
         <form
-          onSubmit={(e) => { e.preventDefault(); router.push("/checkout"); }}
+          onSubmit={(e) => { e.preventDefault(); sendPrenotazione(); }}
           className="flex flex-col gap-5 text-sm"
         >
           {/* 1. Taglia */}
@@ -122,7 +170,7 @@ export default function ProductConfigurator({ product, onClose }: ConfiguratorPr
                   >
                     {spec.size}
                     <span className="block text-xs font-normal text-slate-400 mt-0.5">
-                      €{spec.price.toFixed(2)}
+                      da €{Number(spec.prezzoGiornata).toFixed(2)}
                     </span>
                   </button>
                 ))}
@@ -130,55 +178,19 @@ export default function ProductConfigurator({ product, onClose }: ConfiguratorPr
             )}
           </div>
 
-          {/* 2. Location — appare dopo aver scelto la taglia */}
+          {/* 2. Alimentazione */}
           {selectedSize && (
             <div>
               <label className="block text-slate-300 font-semibold mb-2">
-                2. Dove vuoi ritirarla?
-              </label>
-              <div className="flex flex-col gap-2">
-                {locationPerTaglia.map((stock) => (
-                  <button
-                    key={stock.id}
-                    type="button"
-                    onClick={() => handleLocationSelect(stock)}
-                    className={`w-full text-left p-3 rounded-lg border transition ${
-                      selectedLocationStock?.id === stock.id
-                        ? "border-emerald-400 bg-emerald-400/10 text-white"
-                        : "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500"
-                    }`}
-                  >
-                    <span className="font-semibold">{stock.location.nome}</span>
-                    <span className="block text-xs text-slate-400 mt-0.5">
-                      {stock.location.indirizzo}
-                    </span>
-                    <div className="flex gap-3 mt-1.5 text-xs">
-                      {stock.numberE > 0 && (
-                        <span className="text-cyan-400">⚡ {stock.numberE} elettriche</span>
-                      )}
-                      {stock.numberM > 0 && (
-                        <span className="text-emerald-400">🚲 {stock.numberM} muscolari</span>
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* 3. Tipo E/M — appare dopo aver scelto la location */}
-          {selectedLocationStock && (
-            <div>
-              <label className="block text-slate-300 font-semibold mb-2">
-                3. Tipo di propulsione:
+                2. Tipo di propulsione:
               </label>
               <div className="flex gap-2">
-                {selectedLocationStock.numberE > 0 && (
+                {alimentazioniPerTaglia.includes("ELETTRICA") && (
                   <button
                     type="button"
-                    onClick={() => setSelectedTipo("E")}
+                    onClick={() => handleAlimentazioneSelect("ELETTRICA")}
                     className={`flex-1 py-2.5 rounded-lg border font-semibold transition ${
-                      selectedTipo === "E"
+                      selectedAlimentazione === "ELETTRICA"
                         ? "border-cyan-400 bg-cyan-400/10 text-cyan-400"
                         : "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500"
                     }`}
@@ -186,12 +198,12 @@ export default function ProductConfigurator({ product, onClose }: ConfiguratorPr
                     ⚡ Elettrica
                   </button>
                 )}
-                {selectedLocationStock.numberM > 0 && (
+                {alimentazioniPerTaglia.includes("MUSCOLARE") && (
                   <button
                     type="button"
-                    onClick={() => setSelectedTipo("M")}
+                    onClick={() => handleAlimentazioneSelect("MUSCOLARE")}
                     className={`flex-1 py-2.5 rounded-lg border font-semibold transition ${
-                      selectedTipo === "M"
+                      selectedAlimentazione === "MUSCOLARE"
                         ? "border-emerald-400 bg-emerald-400/10 text-emerald-400"
                         : "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500"
                     }`}
@@ -199,12 +211,50 @@ export default function ProductConfigurator({ product, onClose }: ConfiguratorPr
                     🚲 Muscolare
                   </button>
                 )}
+                {alimentazioniPerTaglia.length === 0 && (
+                  <p className="text-slate-500 text-xs py-2">Nessuna opzione disponibile per questa taglia.</p>
+                )}
               </div>
             </div>
           )}
 
-          {/* 4. Accessori — appare dopo aver scelto il tipo */}
-          {selectedTipo && (
+          {/* 3. Location */}
+          {selectedAlimentazione && (
+            <div>
+              <label className="block text-slate-300 font-semibold mb-2">
+                3. Dove vuoi ritirarla?
+              </label>
+              <div className="flex flex-col gap-2">
+                {locationPerTaglia.length === 0 ? (
+                  <p className="text-slate-500 text-xs py-2">Nessuna disponibilità in questo momento.</p>
+                ) : (
+                  locationPerTaglia.map((stock) => (
+                    <button
+                      key={stock.id}
+                      type="button"
+                      onClick={() => handleLocationSelect(stock)}
+                      className={`w-full text-left p-3 rounded-lg border transition ${
+                        selectedLocationStock?.id === stock.id
+                          ? "border-emerald-400 bg-emerald-400/10 text-white"
+                          : "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500"
+                      }`}
+                    >
+                      <span className="font-semibold">{stock.location.nome}</span>
+                      <span className="block text-xs text-slate-400 mt-0.5">
+                        {stock.location.indirizzo}
+                      </span>
+                      <span className="inline-block mt-1.5 text-xs text-slate-500">
+                        {stock.quantita} disponibile{stock.quantita !== 1 ? "i" : ""}
+                      </span>
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* 4. Accessori */}
+          {selectedLocationStock && (
             <div>
               <label className="block text-slate-300 font-semibold mb-2">
                 4. Accessori Extra:
@@ -234,8 +284,8 @@ export default function ProductConfigurator({ product, onClose }: ConfiguratorPr
                       />
                       <span>
                         {acc.nome}
-                        {acc.prezzo && (
-                          <span className="text-xs text-slate-500"> ({acc.prezzo})</span>
+                        {acc.prezzo !== undefined && (
+                          <span className="text-xs text-slate-500"> (€{acc.prezzo.toFixed(2)})</span>
                         )}
                       </span>
                     </label>

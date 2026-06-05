@@ -1,12 +1,12 @@
 import { z } from 'zod'
 import { decimalToNumber } from './util'
+import { AlimentazioneSchema } from './bicicletta'
 
 export const BiciclettaLocationSchema = z.object({
   id: z.number(),
   locationId: z.number(),
   biciclettaSpecificId: z.number(),
-  numberE: z.number(),
-  numberM: z.number(),
+  quantita: z.number(),
   location: z.object({
     id: z.number(),
     nome: z.string(),
@@ -15,7 +15,9 @@ export const BiciclettaLocationSchema = z.object({
   biciclettaSpecific: z.object({
     id: z.number(),
     size: z.string(),
-    price: decimalToNumber,
+    alimentazione: AlimentazioneSchema,
+    prezzoGiornata: decimalToNumber,
+    prezzoMezzaGiornata: decimalToNumber,
     biciclettaId: z.number(),
   }),
 })
@@ -23,13 +25,11 @@ export const BiciclettaLocationSchema = z.object({
 export const CreateBiciclettaLocationSchema = z.object({
   locationId: z.number(),
   biciclettaSpecificId: z.number(),
-  numberE: z.number().int().min(0).default(0),
-  numberM: z.number().int().min(0).default(0),
+  quantita: z.number().int().min(0).default(0),
 })
 
 export const UpdateBiciclettaLocationSchema = z.object({
-  numberE: z.number().int().min(0),
-  numberM: z.number().int().min(0),
+  quantita: z.number().int().min(0),
 })
 
 export type BiciclettaLocationWithDetails = z.infer<typeof BiciclettaLocationSchema>

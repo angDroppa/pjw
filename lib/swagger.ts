@@ -1,7 +1,17 @@
 import { OpenAPIRegistry, OpenApiGeneratorV3 } from '@asteasolutions/zod-to-openapi'
-import { UserSchema, CreateUserSchema } from './schemas/user.schema'
-import { RegisterSchema, LoginSchema, LoginResponseSchema } from './schemas/auth.schema'
+import { RegisterSchema, LoginSchema, LoginResponseSchema } from './zodSchemas/auth.schema'
 import { z } from 'zod'
+
+const UserSchema = z.object({
+  id: z.number(),
+  firstName: z.string(),
+  lastName: z.string(),
+  email: z.string().email(),
+  verified: z.boolean().optional(),
+  roleName: z.string(),
+})
+
+const CreateUserSchema = UserSchema.omit({ id: true })
 
 const registry = new OpenAPIRegistry()
 

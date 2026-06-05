@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
-import { RegisterSchema } from '@/lib/schemas/auth.schema'
 import bcrypt from 'bcryptjs'
+import crypto from 'crypto'
 import prisma from '@/lib/prisma'
+import { RegisterSchema } from '@/lib/zodSchemas/auth.schema'
 
 export async function POST(req: Request) {
   const body = await req.json()
@@ -20,6 +21,7 @@ export async function POST(req: Request) {
   }
 
   const hashedPassword = await bcrypt.hash(parsed.data.password, 10)
+  const verificationToken = crypto.randomBytes(32).toString('hex')
 
   const user = await prisma.user.create({
     data: {
@@ -27,9 +29,17 @@ export async function POST(req: Request) {
       lastName: parsed.data.lastName,
       email: parsed.data.email,
       password: hashedPassword,
-      role: { connect: { role: 'USER' } },
+      verificationToken,
+      role: { connect: { role: 'CUSTOMER' } },
     },
   })
 
-  return NextResponse.json({ message: 'Utente registrato' }, { status: 201 })
+  // Simula invio email di attivazione
+  console.log(`[SIMULA EMAIL] Attivazione account per ${user.email}`)
+  console.log(`[SIMULA EMAIL] Link: /api/auth/verify?token=${verificationToken}`)
+
+  return NextResponse.json({
+    message: 'Utente registrato. Controlla la tua email per attivare l\'account.',
+    verificationToken, // esposto solo in dev per test
+  }, { status: 201 })
 }

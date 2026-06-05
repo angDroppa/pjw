@@ -25,12 +25,36 @@ export default function Navbar() {
 
   return (
     <div className="w-full">
-      <div className="fixed top-0 left-0 w-full z-50 bg-gray-100">
-        <div className="h-16 flex items-center justify-between px-4">
-          <div className="flex-1">
-            <Link href="/" className="text-xl font-bold">
-              MyApp
+      <div className="fixed top-0 left-0 w-full z-50 bg-gray-100 border-b border-gray-200">
+        <div className="h-16 flex items-center justify-between px-6 max-w-7xl mx-auto">
+          <div className="flex items-center gap-6">
+            <Link href="/" className="text-xl font-bold text-black">
+              BikeStore
             </Link>
+            {isClient && user && (
+              <nav className="flex items-center gap-4 ml-4">
+                <Link
+                  href="/"
+                  className={`text-sm font-medium transition-colors ${
+                    pathname === "/"
+                      ? "text-emerald-600 border-b-2 border-emerald-600"
+                      : "text-gray-600 hover:text-black"
+                  }`}
+                >
+                  Catalogo
+                </Link>
+                <Link
+                  href="/dashboard"
+                  className={`text-sm font-medium transition-colors ${
+                    pathname.startsWith("/dashboard")
+                      ? "text-emerald-600 border-b-2 border-emerald-600"
+                      : "text-gray-600 hover:text-black"
+                  }`}
+                >
+                  Dashboard
+                </Link>
+              </nav>
+            )}
           </div>
           <div className="ml-auto">
             {isClient &&
@@ -38,13 +62,13 @@ export default function Navbar() {
                 <Navuser />
               ) : (
                 <Link href="/login" className="btn btn-sm btn-primary">
-                  Login
+                  Accedi
                 </Link>
               ))}
           </div>
         </div>
       </div>
-      <div className="h-16 border"></div>
+      <div className="h-16"></div>
     </div>
   );
 }

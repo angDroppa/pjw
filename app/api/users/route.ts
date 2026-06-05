@@ -1,29 +1,39 @@
-import prisma from '@/lib/prisma'
 import { NextResponse } from 'next/server'
-import { CreateUserSchema } from '@/lib/schemas/user.schema'
-import crypto from 'crypto'
+import bcrypt from 'bcryptjs'
+import prisma from '@/lib/prisma'
+import { requireAuth } from '@/lib/auth-helper'
 
-export async function GET() {
-  const users = await prisma.user.findMany()
+export async function GET(req: Request) {
+  const user = await requireAuth(req)
+  if (!user) return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 })
+
+  const users = await prisma.user.findMany({
+    select: { id: true, firstName: true, lastName: true, email: true, roleName: true, verified: true },
+  })
+
   return NextResponse.json(users)
 }
 
 export async function POST(req: Request) {
+  const authUser = await requireAuth(req)
+  if (!authUser) return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 })
+
   const body = await req.json()
 
-  const parsed = CreateUserSchema.safeParse(body)
-  if (!parsed.success) {
-    return NextResponse.json({ errors: parsed.error.flatten() }, { status: 400 })
-  }
+  const existing = await prisma.user.findUnique({ where: { email: body.email } })
+  if (existing) return NextResponse.json({ error: 'Email già esistente' }, { status: 409 })
 
-  const { roleName, ...rest } = parsed.data
+  const hashedPassword = await bcrypt.hash(body.password, 10)
 
-  const { password: _, ...user } = await prisma.user.create({
+  const user = await prisma.user.create({
     data: {
-      ...rest,
-      password: crypto.randomBytes(16).toString('hex'),
-      role: { connect: { role: roleName ?? 'DIPENDENTE' } },
+      firstName: body.firstName,
+      lastName: body.lastName,
+      email: body.email,
+      password: hashedPassword,
+      role: { connect: { role: body.roleName ?? 'CUSTOMER' } },
     },
+    select: { id: true, firstName: true, lastName: true, email: true, roleName: true },
   })
 
   return NextResponse.json(user, { status: 201 })

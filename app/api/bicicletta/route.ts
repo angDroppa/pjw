@@ -10,7 +10,11 @@ export async function GET() {
           select: {
             id: true,
             size: true,
-            price: true,
+            alimentazione: true,
+            prezzoGiornata: true,
+            prezzoMezzaGiornata: true,
+            altezzaMin: true,
+            altezzaMax: true,
           },
         },
       },
@@ -19,12 +23,10 @@ export async function GET() {
       },
     })
 
-    // 🔥 VALIDAZIONE ZOD
     const parsed = BiciclettaCatalogSchema.array().safeParse(biciclette)
 
     if (!parsed.success) {
-      console.error(' Zod error:', parsed.error)
-
+      console.error('Zod error:', parsed.error)
       return NextResponse.json(
         { error: 'Invalid data format' },
         { status: 500 }
@@ -33,8 +35,7 @@ export async function GET() {
 
     return NextResponse.json(parsed.data)
   } catch (error) {
-    console.error('❌ GET biciclette error:', error)
-
+    console.error('GET biciclette error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

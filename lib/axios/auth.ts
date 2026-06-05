@@ -1,16 +1,21 @@
 import { AuthResponse } from '@/app/entities/auth.entities'
 import api from './index'
-import { Login, Register } from '@/lib/schemas/auth.schema'
 
+export interface RegisterPayload {
+  firstName: string
+  lastName: string
+  email: string
+  password: string
+}
 
 export const authApi = {
-  login: async (data: Login): Promise<AuthResponse> => {
+  login: async (data: { email: string; password: string }): Promise<AuthResponse> => {
     const response = await api.post<AuthResponse>('/auth/login', data)
     return response.data
   },
 
-  register: async (data: Register): Promise<AuthResponse> => {
-    const response = await api.post<AuthResponse>('/auth/register', data)
+  register: async (data: RegisterPayload): Promise<{ message: string; verificationToken?: string }> => {
+    const response = await api.post('/auth/register', data)
     return response.data
   },
 
@@ -18,4 +23,3 @@ export const authApi = {
     await api.post('/auth/logout', { refreshToken })
   },
 }
-

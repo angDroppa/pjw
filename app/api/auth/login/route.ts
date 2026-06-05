@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { LoginSchema } from '@/lib/schemas/auth.schema'
+import { LoginSchema } from '@/lib/zodSchemas/auth.schema'
 import { signAccessToken, signRefreshToken } from '@/lib/jwt'
 import bcrypt from 'bcryptjs'
 import prisma from '@/lib/prisma'

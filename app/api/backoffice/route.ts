@@ -2,7 +2,7 @@ import prisma from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth-helper'
 import { CreateLocationSchema, UpdateLocationSchema } from '@/lib/zodSchemas/location'
-import { CreateAccessorioSchema } from '@/lib/schemas/accessorio.schema'
+import { CreateAccessorioSchema } from '@/lib/zodSchemas/accessorio'
 import { UpdateAccessorioSchema } from '@/lib/zodSchemas/accessorio'
 import { CreateAssicurazioneSchema, UpdateAssicurazioneSchema } from '@/lib/zodSchemas/assicurazione'
 import { CreateBiciclettaSchema, CreateSpecificheSchema } from '@/lib/zodSchemas/bicicletta'
@@ -10,10 +10,6 @@ import { CreateBiciclettaLocationSchema, UpdateBiciclettaLocationSchema } from '
 import { UpdateStatoSchema } from '@/lib/zodSchemas/prenotazione'
 import { Prisma } from '@/app/generated/prisma/client'
 
-
-// ==========================================
-// GET
-// ==========================================
 export async function GET(req: Request) {
   const user = await requireAuth(req)
   if (!user) return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 })
@@ -80,7 +76,6 @@ export async function GET(req: Request) {
         orderBy: { dataRitiro: 'asc' },
       })
 
-      // Appiattisco gli accessori per comodità del frontend
       const mapped = prenotazioni.map(p => ({
         ...p,
         accessori: p.prenotazioni.map(ap => ap.accessorio),
@@ -155,7 +150,7 @@ export async function GET(req: Request) {
       })
 
       const mostUsedBikes = biciRaw.map(b => ({
-        model:   infoBici.find(i => i.id === b.biciclettaId)?.bicicletta.type ?? `Bici #${b.biciclettaId}`,
+        model:   infoBici.find(i => i.id === b.biciclettaId)?.bicicletta.nome ?? `Bici #${b.biciclettaId}`,
         rentals: b._count.id,
       }))
 
@@ -318,7 +313,6 @@ export async function POST(req: Request) {
     }
 
     // ── STOCK (BiciclettaLocation) ────────────────────────────────────────────
-    // Aggiunge una specifica bici a un negozio con quantità E e M iniziali
     if (action === 'aggiungi_bici_negozio') {
       if (!isAdmin) return denyAdmin()
       const parsed = CreateBiciclettaLocationSchema.safeParse(body)
@@ -339,8 +333,7 @@ export async function POST(req: Request) {
           }
         },
         update: {
-          numberE: { increment: parsed.data.numberE },
-          numberM: { increment: parsed.data.numberM },
+          quantita: { increment: parsed.data.quantita },
         },
         create: parsed.data,
         include: {
@@ -351,7 +344,6 @@ export async function POST(req: Request) {
       return NextResponse.json(stock)
     }
 
-    // Aggiorna numberE / numberM direttamente
     if (action === 'update_stock') {
       if (!isAdmin) return denyAdmin()
       const { biciclettaLocationId, ...rest } = body
@@ -377,12 +369,16 @@ export async function POST(req: Request) {
       })
       if (!prenotazione) return NextResponse.json({ error: 'Prenotazione non trovata' }, { status: 404 })
 
+      const updateData: Record<string, unknown> = {
+        stato: parsed.data.stato,
+        note: parsed.data.note ?? prenotazione.note,
+      }
+      if (parsed.data.noteRiconsegna !== undefined) updateData.noteRiconsegna = parsed.data.noteRiconsegna
+      if (parsed.data.danni !== undefined) updateData.danni = parsed.data.danni
+
       const updated = await prisma.prenotazione.update({
         where: { id: parseInt(prenotazioneId) },
-        data: {
-          stato: parsed.data.stato,
-          note:  parsed.data.note ?? prenotazione.note,
-        },
+        data: updateData,
       })
       return NextResponse.json(updated)
     }

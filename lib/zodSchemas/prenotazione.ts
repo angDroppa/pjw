@@ -14,12 +14,15 @@ export const StatoPrenotazioneSchema = z.enum([
 
 export const PrenotazioneSchema = z.object({
   id: z.number(),
+  dataCreazione: z.coerce.date(),
   dataRitiro: z.coerce.date(),
   oraRitiro: z.string(),
   dataConsegna: z.coerce.date(),
   oraConsegna: z.string(),
   stato: StatoPrenotazioneSchema,
   note: z.string().nullable(),
+  noteRiconsegna: z.string().nullable(),
+  danni: z.string().nullable(),
   totalePagato: decimalToNumber,
   utenteId: z.number(),
   bicicletta: SpecificheBiciclettaSchema,
@@ -43,6 +46,8 @@ export const CreatePrenotazioneSchema = z.object({
 export const UpdateStatoSchema = z.object({
   stato: StatoPrenotazioneSchema,
   note: z.string().optional(),
+  noteRiconsegna: z.string().optional(),
+  danni: z.string().optional(),
 })
 
 export type StatoPrenotazione = z.infer<typeof StatoPrenotazioneSchema>

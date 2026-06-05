@@ -8,7 +8,7 @@ import { bicicletteApi } from "@/lib/axios/bicicletta";
 
 export default function Home() {
   const [data, setData] = useState<BiciclettaCatalog[]>([])
-  const [selectedProduct, setSelectedProduct] = useState<BiciclettaCatalog | null>(null) // 👈 aggiunto
+  const [selectedProduct, setSelectedProduct] = useState<BiciclettaCatalog | null>(null)
 
   useEffect(() => {
     const load = async () => {
@@ -34,7 +34,6 @@ export default function Home() {
           </p>
         </div>
 
-        {/* 👇 aggiunto */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {data.map((bici) => (
             <ProductCard
@@ -45,7 +44,6 @@ export default function Home() {
           ))}
         </div>
 
-        {/* 👇 era già presente ma mancava selectedProduct */}
         {selectedProduct && (
           <ProductConfigurator
             product={selectedProduct}
