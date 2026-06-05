@@ -28,7 +28,7 @@ export default function LoginPage() {
       const { accessToken, refreshToken, user } = await authApi.login(data)
       setTokens(accessToken, refreshToken, user)
       const hasPrenotazione = typeof window !== 'undefined' && localStorage.getItem('prenotazioneConfig')
-      router.push(hasPrenotazione ? '/checkout' : user.roleName === 'ADMIN' ? '/backoffice' : '/dashboard')
+      router.push(hasPrenotazione ? '/checkout' : user.roleName === 'ADMIN' ? '/backoffice/prenotazioni' : '/dashboard')
     } catch {
       // errore già gestito dall'interceptor axios
     } finally {
