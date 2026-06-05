@@ -7,6 +7,7 @@ import { UpdateAccessorioSchema } from '@/lib/zodSchemas/accessorio'
 import { CreateAssicurazioneSchema, UpdateAssicurazioneSchema } from '@/lib/zodSchemas/assicurazione'
 import { CreateBiciclettaSchema, CreateSpecificheSchema, UpdateSpecificheSchema } from '@/lib/zodSchemas/bicicletta'
 import { CreateBiciclettaLocationSchema, UpdateBiciclettaLocationSchema } from '@/lib/zodSchemas/biciclettaLocation'
+import { CreateBiciclettaIstanzaSchema } from '@/lib/zodSchemas/biciclettaIstanza'
 import { UpdateStatoSchema } from '@/lib/zodSchemas/prenotazione'
 import { Prisma } from '@/app/generated/prisma/client'
 
@@ -28,6 +29,9 @@ export async function GET(req: Request) {
               include: {
                 biciclettaSpecific: {
                   include: { bicicletta: true }
+                },
+                istanze: {
+                  select: { id: true, codice: true, occupata: true, occupataDa: true, occupataA: true }
                 }
               }
             }
@@ -69,6 +73,7 @@ export async function GET(req: Request) {
         include: {
           utente: { select: { firstName: true, lastName: true, email: true } },
           bicicletta: { include: { bicicletta: true } },
+          biciclettaIstanza: true,
           location: true,
           copertura: true,
           prenotazioni: { include: { accessorio: true } },
@@ -96,6 +101,28 @@ export async function GET(req: Request) {
         }),
       ])
       return NextResponse.json({ biciclette, negozi })
+    }
+
+    // ── ISTANZE ────────────────────────────────────────────────────────────────
+    if (action === 'elenco_istanze') {
+      const where: Record<string, unknown> = {}
+      const locationId = searchParams.get('locationId')
+      const specificaId = searchParams.get('specificaId')
+      if (locationId) where.locationId = parseInt(locationId)
+      if (specificaId) where.specificheBiciclettaId = parseInt(specificaId)
+      const istanze = await prisma.biciclettaIstanza.findMany({
+        where: where as never,
+        include: {
+          specificheBicicletta: { include: { bicicletta: true } },
+          location: true,
+          prenotazioni: {
+            where: { stato: { not: 'RETURNED' } },
+            select: { id: true, dataRitiro: true, dataConsegna: true, stato: true },
+          },
+        },
+        orderBy: { codice: 'asc' },
+      })
+      return NextResponse.json(istanze)
     }
 
     // ── STATISTICHE ───────────────────────────────────────────────────────────
@@ -325,6 +352,73 @@ export async function POST(req: Request) {
       return NextResponse.json(updated)
     }
 
+    // ── ISTANZE (BiciclettaIstanza) ───────────────────────────────────────────
+    if (action === 'genera_istanze') {
+      if (!isAdmin) return denyAdmin()
+      const { biciclettaLocationId } = body
+      if (!biciclettaLocationId) return NextResponse.json({ error: 'biciclettaLocationId obbligatorio' }, { status: 400 })
+
+      const stock = await prisma.biciclettaLocation.findUnique({
+        where: { id: parseInt(biciclettaLocationId) },
+      })
+      if (!stock) return NextResponse.json({ error: 'Stock non trovato' }, { status: 404 })
+
+      const esistenti = await prisma.biciclettaIstanza.count({
+        where: { biciclettaLocationId: stock.id },
+      })
+      const daCreare = stock.quantita - esistenti
+      if (daCreare <= 0) {
+        return NextResponse.json({ message: 'Già al massimo delle istanze', createCount: 0 })
+      }
+
+      const istanze = []
+      for (let i = esistenti + 1; i <= stock.quantita; i++) {
+        istanze.push({
+          codice: `BIKE-${stock.biciclettaSpecificId}-${stock.locationId}-${i}`,
+          specificheBiciclettaId: stock.biciclettaSpecificId,
+          locationId: stock.locationId,
+          biciclettaLocationId: stock.id,
+        })
+      }
+      await prisma.biciclettaIstanza.createMany({ data: istanze })
+      return NextResponse.json({ message: `${istanze.length} istanze create`, createCount: istanze.length })
+    }
+
+    if (action === 'get_istanze') {
+      const { biciclettaLocationId } = body
+      const where: Record<string, unknown> = {}
+      if (biciclettaLocationId) where.biciclettaLocationId = parseInt(biciclettaLocationId)
+      const istanze = await prisma.biciclettaIstanza.findMany({
+        where: where as never,
+        include: {
+          specificheBicicletta: { include: { bicicletta: true } },
+          location: true,
+          prenotazioni: { select: { id: true, dataRitiro: true, dataConsegna: true, stato: true } },
+        },
+        orderBy: { codice: 'asc' },
+      })
+      return NextResponse.json(istanze)
+    }
+
+    if (action === 'delete_istanza') {
+      if (!isAdmin) return denyAdmin()
+      const { istanzaId } = body
+      if (!istanzaId) return NextResponse.json({ error: 'istanzaId obbligatorio' }, { status: 400 })
+      await prisma.biciclettaIstanza.delete({ where: { id: parseInt(istanzaId) } })
+      return NextResponse.json({ ok: true })
+    }
+
+    if (action === 'libera_istanza') {
+      if (!isAdmin) return denyAdmin()
+      const { istanzaId } = body
+      if (!istanzaId) return NextResponse.json({ error: 'istanzaId obbligatorio' }, { status: 400 })
+      const istanza = await prisma.biciclettaIstanza.update({
+        where: { id: parseInt(istanzaId) },
+        data: { occupata: false, occupataDa: null, occupataA: null },
+      })
+      return NextResponse.json(istanza)
+    }
+
     // ── STOCK (BiciclettaLocation) ────────────────────────────────────────────
     if (action === 'aggiungi_bici_negozio') {
       if (!isAdmin) return denyAdmin()
@@ -354,6 +448,25 @@ export async function POST(req: Request) {
           location: true,
         },
       })
+
+      // Genera istanze per le nuove bici
+      const esistenti = await prisma.biciclettaIstanza.count({
+        where: { biciclettaLocationId: stock.id },
+      })
+      const nuovoTotale = parsed.data.quantita
+      const istanze = []
+      for (let i = esistenti + 1; i <= esistenti + nuovoTotale; i++) {
+        istanze.push({
+          codice: `BIKE-${stock.biciclettaSpecificId}-${stock.locationId}-${i}`,
+          specificheBiciclettaId: stock.biciclettaSpecificId,
+          locationId: stock.locationId,
+          biciclettaLocationId: stock.id,
+        })
+      }
+      if (istanze.length > 0) {
+        await prisma.biciclettaIstanza.createMany({ data: istanze })
+      }
+
       return NextResponse.json(stock)
     }
 
@@ -366,7 +479,26 @@ export async function POST(req: Request) {
       const updated = await prisma.biciclettaLocation.update({
         where: { id: parseInt(biciclettaLocationId) },
         data: parsed.data,
+        include: { istanze: true },
       })
+
+      // Sincronizza istanze: crea se il nuovo quantita è maggiore delle istanze esistenti
+      const esistenti = updated.istanze.length
+      if (parsed.data.quantita > esistenti) {
+        const istanze = []
+        for (let i = esistenti + 1; i <= parsed.data.quantita; i++) {
+          istanze.push({
+            codice: `BIKE-${updated.biciclettaSpecificId}-${updated.locationId}-${i}`,
+            specificheBiciclettaId: updated.biciclettaSpecificId,
+            locationId: updated.locationId,
+            biciclettaLocationId: updated.id,
+          })
+        }
+        if (istanze.length > 0) {
+          await prisma.biciclettaIstanza.createMany({ data: istanze })
+        }
+      }
+
       return NextResponse.json(updated)
     }
 

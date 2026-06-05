@@ -127,6 +127,7 @@ export default function PrenotazioniPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13 }}>
             <div><strong>Utente:</strong> {(detail as any).utente?.firstName} {(detail as any).utente?.lastName} ({(detail as any).utente?.email})</div>
             <div><strong>Bicicletta:</strong> {(detail.bicicletta as any)?.bicicletta?.nome ?? '—'} - {detail.bicicletta.size} - {detail.bicicletta.alimentazione === 'ELETTRICA' ? 'Elettrica' : 'Muscolare'}</div>
+            <div><strong>Istanza:</strong> {(detail as any).biciclettaIstanza?.codice ?? '—'}</div>
             <div><strong>Location:</strong> {detail.location.nome} - {detail.location.indirizzo}</div>
             <div><strong>Ritiro:</strong> {new Date(detail.dataRitiro).toLocaleDateString()} {detail.oraRitiro}</div>
             <div><strong>Consegna:</strong> {new Date(detail.dataConsegna).toLocaleDateString()} {detail.oraConsegna}</div>

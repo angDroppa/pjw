@@ -7,6 +7,7 @@ import api from "@/lib/axios";
 import { calcolaPrezzoBici } from "@/lib/pricing";
 
 interface PrenotazioneConfig {
+  dateRange?: { dataRitiro: string; oraRitiro: string; dataConsegna: string; oraConsegna: string };
   prodotto: { id: number; nome: string; tipologia: string };
   biciclettaSpecificId: number;
   biciclettaSpecific: {
@@ -51,7 +52,15 @@ export default function CheckoutPage() {
   useEffect(() => {
     const saved = localStorage.getItem("prenotazioneConfig");
     if (saved) {
-      setConfig(JSON.parse(saved));
+      const parsed: PrenotazioneConfig = JSON.parse(saved);
+      setConfig(parsed);
+      // Precompila le date dal configurator se presenti
+      if (parsed.dateRange) {
+        setDataRitiro(parsed.dateRange.dataRitiro);
+        setOraRitiro(parsed.dateRange.oraRitiro);
+        setDataConsegna(parsed.dateRange.dataConsegna);
+        setOraConsegna(parsed.dateRange.oraConsegna);
+      }
     }
     fetch("/api/assicurazioni")
       .then(r => r.json())

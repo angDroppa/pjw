@@ -96,8 +96,11 @@ model Prenotazione {
   utenteId Int
   utente   User @relation(fields: [utenteId], references: [id], onDelete: Cascade)
 
-  biciclettaId Int
-  bicicletta   SpecificheBicicletta @relation(fields: [biciclettaId], references: [id], onDelete: Cascade)
+  biciclettaId    Int
+  bicicletta      SpecificheBicicletta @relation(fields: [biciclettaId], references: [id], onDelete: Cascade)
+
+  biciclettaIstanzaId Int?
+  biciclettaIstanza   BiciclettaIstanza? @relation(fields: [biciclettaIstanzaId], references: [id], onDelete: SetNull)
 
   locationId Int
   location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
@@ -142,6 +145,7 @@ model Location {
   indirizzo String
 
   biciclette   BiciclettaLocation[]
+  istanze      BiciclettaIstanza[]
   prenotazioni Prenotazione[]
 }
 
@@ -152,7 +156,26 @@ model BiciclettaLocation {
   quantita               Int                   @default(0)
   location               Location              @relation(fields: [locationId], references: [id], onDelete: Cascade)
   biciclettaSpecific     SpecificheBicicletta  @relation(fields: [biciclettaSpecificId], references: [id], onDelete: Cascade)
+  istanze                BiciclettaIstanza[]
   @@unique([locationId, biciclettaSpecificId])
+}
+
+model BiciclettaIstanza {
+  id                      Int                     @id @default(autoincrement())
+  codice                  String
+  specificheBiciclettaId  Int
+  locationId              Int
+  occupata                Boolean                 @default(false)
+  occupataDa              DateTime?
+  occupataA               DateTime?
+
+  biciclettaLocationId    Int?
+  biciclettaLocation      BiciclettaLocation?    @relation(fields: [biciclettaLocationId], references: [id], onDelete: SetNull)
+  specificheBicicletta    SpecificheBicicletta   @relation(fields: [specificheBiciclettaId], references: [id])
+  location                Location               @relation(fields: [locationId], references: [id])
+  prenotazioni            Prenotazione[]
+
+  @@unique([codice])
 }
 
 // ==========================================
@@ -178,5 +201,6 @@ model SpecificheBicicletta {
   bicicletta           Bicicletta            @relation(fields: [biciclettaId], references: [id])
   prenotazione         Prenotazione[]
   location             BiciclettaLocation[]
+  istanze              BiciclettaIstanza[]
   @@unique([biciclettaId, size, alimentazione])
 }

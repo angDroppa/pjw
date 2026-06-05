@@ -22,6 +22,11 @@ export const BiciclettaLocationSchema = z.object({
   }),
 })
 
+export const BiciclettaLocationDisponibilitaSchema = BiciclettaLocationSchema.extend({
+  istanzeTotali: z.number(),
+  istanzeDisponibili: z.number(),
+})
+
 export const CreateBiciclettaLocationSchema = z.object({
   locationId: z.number(),
   biciclettaSpecificId: z.number(),

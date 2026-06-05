@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma'
 import { requireAuth } from '@/lib/auth-helper'
 import { CreatePrenotazioneSchema } from '@/lib/zodSchemas/prenotazione'
 import { calcolaPrezzoBici } from '@/lib/pricing'
+import { assegnaIstanza } from '@/lib/availability'
 
 export async function GET(req: Request) {
   const user = await requireAuth(req)
@@ -12,6 +13,7 @@ export async function GET(req: Request) {
     where: { utenteId: user.id },
     include: {
       bicicletta: { include: { bicicletta: true } },
+      biciclettaIstanza: true,
       location: true,
       copertura: true,
       prenotazioni: { include: { accessorio: true } },
@@ -62,7 +64,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Bicicletta non trovata' }, { status: 404 })
   }
 
-  // Verifica disponibilità stock
+  // Assegna un'istanza disponibile per il periodo richiesto
+  // (la verifica stock è interna ad assegnaIstanza)
+  const istanza = await assegnaIstanza(
+    parsed.data.biciclettaId,
+    parsed.data.locationId,
+    parsed.data.dataRitiro,
+    parsed.data.oraRitiro,
+    parsed.data.dataConsegna,
+    parsed.data.oraConsegna,
+  )
+
+  // Se non ci sono istanze (legacy) ma stock > 0, permetti comunque
   const stock = await prisma.biciclettaLocation.findUnique({
     where: {
       locationId_biciclettaSpecificId: {
@@ -70,9 +83,13 @@ export async function POST(req: Request) {
         biciclettaSpecificId: parsed.data.biciclettaId,
       },
     },
+    include: { istanze: { select: { id: true } } },
   })
-  if (!stock || stock.quantita <= 0) {
+  if (!stock) {
     return NextResponse.json({ error: 'Bicicletta non disponibile in questa location' }, { status: 409 })
+  }
+  if (!istanza && stock.istanze.length > 0) {
+    return NextResponse.json({ error: 'Bicicletta non disponibile per il periodo richiesto' }, { status: 409 })
   }
 
   // Calcola totale (prezzo giornaliero)
@@ -103,6 +120,7 @@ export async function POST(req: Request) {
       totalePagato: totale,
       utenteId: user.id,
       biciclettaId: parsed.data.biciclettaId,
+      biciclettaIstanzaId: istanza?.id ?? null,
       locationId: parsed.data.locationId,
       coperturaId: parsed.data.assicurazioneId,
       note: parsed.data.note,
@@ -112,6 +130,7 @@ export async function POST(req: Request) {
     },
     include: {
       bicicletta: { include: { bicicletta: true } },
+      biciclettaIstanza: true,
       location: true,
       copertura: true,
       prenotazioni: { include: { accessorio: true } },

@@ -230,7 +230,28 @@ async function main() {
   console.log('✅ Stock BiciclettaLocation popolato per 4 negozi')
 
   // ==========================================
-  // 9. PRENOTAZIONI
+  // 9. GENERA ISTANZE (BiciclettaIstanza)
+  // ==========================================
+
+  const stockEntries = await prisma.biciclettaLocation.findMany()
+  const istanzaData: { codice: string; specificheBiciclettaId: number; locationId: number; biciclettaLocationId: number }[] = []
+
+  for (const entry of stockEntries) {
+    for (let i = 1; i <= entry.quantita; i++) {
+      istanzaData.push({
+        codice: `BIKE-${entry.biciclettaSpecificId}-${entry.locationId}-${i}`,
+        specificheBiciclettaId: entry.biciclettaSpecificId,
+        locationId: entry.locationId,
+        biciclettaLocationId: entry.id,
+      })
+    }
+  }
+
+  await prisma.biciclettaIstanza.createMany({ data: istanzaData })
+  console.log(`✅ ${istanzaData.length} istanze BiciclettaIstanza create`)
+
+  // ==========================================
+  // 10. PRENOTAZIONI
   // ==========================================
 
   interface PrenData {
@@ -294,7 +315,38 @@ async function main() {
     { dataRitiro: new Date('2026-06-06'), oraRitiro: '09:00', dataConsegna: new Date('2026-06-06'), oraConsegna: '13:00', stato: 'PENDING',   totale: 13.0, utenteIdx: 19, specifica: spec(bikeCity,   'L', 'MUSCOLARE'), location: locTorino,  assicurazione: assBase, accessoriIds: [] },
   ]
 
+  // Recupera tutte le istanze create per assegnarle alle prenotazioni
+  const tutteIstanze = await prisma.biciclettaIstanza.findMany({
+    include: {
+      specificheBicicletta: { include: { bicicletta: true } },
+    },
+    orderBy: { id: 'asc' },
+  })
+
+  // Mappa: (specificaId, locationId) → istanze disponibili
+  const istanzePerLocation = new Map<string, typeof tutteIstanze>()
+  for (const ist of tutteIstanze) {
+    const key = `${ist.specificheBiciclettaId}-${ist.locationId}`
+    if (!istanzePerLocation.has(key)) istanzePerLocation.set(key, [])
+    istanzePerLocation.get(key)!.push(ist)
+  }
+
+  // Contatori per tenere traccia di quale istanza assegnare per ogni (specifica, location)
+  const allocCounters = new Map<string, number>()
+
+  function getIstanza(specificaId: number, locationId: number) {
+    const key = `${specificaId}-${locationId}`
+    const arr = istanzePerLocation.get(key)
+    if (!arr || arr.length === 0) return null
+    const idx = allocCounters.get(key) ?? 0
+    const ist = arr[idx % arr.length]
+    allocCounters.set(key, idx + 1)
+    return ist
+  }
+
   for (const p of prenotazioni) {
+    const istanza = getIstanza(p.specifica.id, p.location.id)
+    const occupata = p.stato !== 'RETURNED'
     const pren = await prisma.prenotazione.create({
       data: {
         dataRitiro:   p.dataRitiro,
@@ -306,10 +358,22 @@ async function main() {
         note:         p.note,
         utenteId:     clienti[p.utenteIdx].id,
         biciclettaId: p.specifica.id,
+        biciclettaIstanzaId: istanza?.id ?? null,
         locationId:   p.location.id,
         coperturaId:  p.assicurazione.id,
       },
     })
+
+    if (istanza && occupata) {
+      await prisma.biciclettaIstanza.update({
+        where: { id: istanza.id },
+        data: {
+          occupata: true,
+          occupataDa: p.dataRitiro,
+          occupataA: p.dataConsegna,
+        },
+      })
+    }
 
     if (p.accessoriIds.length > 0) {
       await prisma.accessorioPrenotazione.createMany({

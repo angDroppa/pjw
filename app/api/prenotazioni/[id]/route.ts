@@ -11,6 +11,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     where: { id: parseInt(id) },
     include: {
       bicicletta: { include: { bicicletta: true } },
+      biciclettaIstanza: true,
       location: true,
       copertura: true,
       prenotazioni: { include: { accessorio: true } },
@@ -63,6 +64,14 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 
   if (prenotazione.stato !== 'PENDING') {
     return NextResponse.json({ error: 'Solo prenotazioni in attesa possono essere cancellate' }, { status: 400 })
+  }
+
+  // Libera l'istanza se assegnata
+  if (prenotazione.biciclettaIstanzaId) {
+    await prisma.biciclettaIstanza.update({
+      where: { id: prenotazione.biciclettaIstanzaId },
+      data: { occupata: false, occupataDa: null, occupataA: null },
+    })
   }
 
   await prisma.prenotazione.delete({ where: { id: parseInt(id) } })

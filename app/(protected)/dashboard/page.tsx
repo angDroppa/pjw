@@ -14,6 +14,7 @@ interface Prenotazione {
   stato: string;
   totalePagato: number;
   bicicletta: { bicicletta: { nome: string; tipologia: string } };
+  biciclettaIstanza?: { codice: string } | null;
   location: { nome: string };
 }
 

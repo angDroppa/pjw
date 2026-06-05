@@ -195,4 +195,13 @@ export const backofficeApi = {
     })
     return res.data
   },
+
+  // ─── Istanze ──────────────────────────────────────────────────────────────────
+  generaIstanze: async (biciclettaLocationId: number): Promise<{ message: string; createCount: number }> => {
+    const res = await api.post<{ message: string; createCount: number }>(BACKOFFICE, {
+      action: 'genera_istanze',
+      biciclettaLocationId,
+    })
+    return res.data
+  },
 }

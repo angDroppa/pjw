@@ -3,6 +3,7 @@ import { SpecificheBiciclettaSchema } from './bicicletta'
 import { LocationSchema } from './location'
 import { AssicurazioneSchema } from './assicurazione'
 import { AccessorioSchema } from './accessorio'
+import { BiciclettaIstanzaSchema } from './biciclettaIstanza'
 import { decimalToNumber } from './util'
 
 export const StatoPrenotazioneSchema = z.enum([
@@ -26,6 +27,7 @@ export const PrenotazioneSchema = z.object({
   totalePagato: decimalToNumber,
   utenteId: z.number(),
   bicicletta: SpecificheBiciclettaSchema,
+  biciclettaIstanza: BiciclettaIstanzaSchema.nullable(),
   location: LocationSchema,
   copertura: AssicurazioneSchema,
   accessori: z.array(AccessorioSchema),
