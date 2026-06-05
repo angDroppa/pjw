@@ -1,41 +1,39 @@
 import "./ProductCard.css";
-import { Bicicletta } from "@/lib/schemas/bicicletta.schema";
+import { BiciclettaCatalog } from "@/lib/zodSchemas/bicicletta";
 
 interface ProductCardProps {
-  product: Bicicletta;
+  product: BiciclettaCatalog;
   onSelect: () => void;
 }
 
 export default function ProductCard({ product, onSelect }: ProductCardProps) {
-  const nomeModello = product.modello?.nome || `Modello #${product.modelloId}`;
-  
-  const isElettrica = product.tipologie?.some((t) => 
-    t.nome.toLowerCase().includes("elettrica")
-  ) ?? false;
+  const prezzoMin = Math.min(...product.specifics.map((s) => s.price));
+  const taglie = product.specifics.map((s) => s.size);
+
+  const isElettrica = product.type.toLowerCase().includes("elettric");
 
   return (
     <div className="product-card group cursor-pointer" onClick={onSelect}>
       <div className="card-glow" />
       <div className="card-content">
-        
+
         <div>
           <div className="card-header flex justify-between items-start gap-2">
-            <div className="flex flex-wrap gap-1">
-              {product.tipologie?.map((t) => (
-                <span key={t.id} className={`card-badge ${t.nome.toLowerCase().includes("elettrica") ? 'badge-electric' : 'badge-standard'}`}>
-                  {t.nome}
-                </span>
-              ))}
-            </div>
+            <span className={`card-badge ${isElettrica ? "badge-electric" : "badge-standard"}`}>
+              {product.type}
+            </span>
 
             <div className="card-size-container">
-              {product.dimensioni?.map((d) => (
-                <span key={d.id} className="card-size">{d.taglia}</span>
+              {taglie.map((taglia) => (
+                <span key={taglia} className="card-size">{taglia}</span>
               ))}
             </div>
           </div>
 
-          <h3 className="card-title">{nomeModello}</h3>
+          <h3 className="card-title">{product.type}</h3>
+          <p className="text-slate-400 text-xs mt-1">
+            da €{prezzoMin.toFixed(2)} / giorno
+          </p>
         </div>
 
         <div className="card-media-wrapper">
@@ -43,7 +41,10 @@ export default function ProductCard({ product, onSelect }: ProductCardProps) {
           <div className="card-decor-line" />
         </div>
 
-        <button className="card-button" onClick={(e) => { e.stopPropagation(); onSelect(); }}>
+        <button
+          className="card-button"
+          onClick={(e) => { e.stopPropagation(); onSelect(); }}
+        >
           <span>Configura e Prenota</span>
         </button>
 

@@ -8,28 +8,14 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 const adapter = new PrismaPg(pool)
 const prisma = new PrismaClient({ adapter })
 
-function randomBetween(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1)) + min
-}
-
-function addDays(date: Date, days: number) {
-  const d = new Date(date)
-  d.setDate(d.getDate() + days)
-  return d
-}
-
-function addHours(date: Date, hours: number) {
-  return new Date(date.getTime() + hours * 60 * 60 * 1000)
-}
-
 async function main() {
-  console.log('🌱 Seed ricco in avvio...')
+  console.log('🌱 Seed in avvio...')
 
   // ==========================================
   // 1. RUOLI
   // ==========================================
-  await prisma.role.upsert({ where: { role: 'ADMIN' }, update: {}, create: { role: 'ADMIN' } })
-  await prisma.role.upsert({ where: { role: 'STAFF' }, update: {}, create: { role: 'STAFF' } })
+  await prisma.role.upsert({ where: { role: 'ADMIN' },    update: {}, create: { role: 'ADMIN' } })
+  await prisma.role.upsert({ where: { role: 'STAFF' },    update: {}, create: { role: 'STAFF' } })
   await prisma.role.upsert({ where: { role: 'CUSTOMER' }, update: {}, create: { role: 'CUSTOMER' } })
   console.log('✅ Ruoli creati')
 
@@ -38,333 +24,316 @@ async function main() {
   // ==========================================
   const pwdStaff = await bcrypt.hash('admin1234', 12)
 
-  await prisma.user.upsert({
-    where: { email: 'admin@bikerent.com' },
-    update: {},
-    create: { firstName: 'Luca', lastName: 'Ferretti', email: 'admin@bikerent.com', password: pwdStaff, roleName: 'ADMIN' }
-  })
-  await prisma.user.upsert({
-    where: { email: 'staff.milano@bikerent.com' },
-    update: {},
-    create: { firstName: 'Chiara', lastName: 'Mantovani', email: 'staff.milano@bikerent.com', password: pwdStaff, roleName: 'STAFF' }
-  })
-  await prisma.user.upsert({
-    where: { email: 'staff.roma@bikerent.com' },
-    update: {},
-    create: { firstName: 'Davide', lastName: 'Esposito', email: 'staff.roma@bikerent.com', password: pwdStaff, roleName: 'STAFF' }
-  })
-  await prisma.user.upsert({
-    where: { email: 'staff.torino@bikerent.com' },
-    update: {},
-    create: { firstName: 'Sara', lastName: 'Ricci', email: 'staff.torino@bikerent.com', password: pwdStaff, roleName: 'STAFF' }
-  })
+  await prisma.user.upsert({ where: { email: 'admin@bikerent.com' },            update: {}, create: { firstName: 'Luca',   lastName: 'Ferretti',  email: 'admin@bikerent.com',            password: pwdStaff, roleName: 'ADMIN' } })
+  await prisma.user.upsert({ where: { email: 'staff.milano@bikerent.com' },     update: {}, create: { firstName: 'Chiara', lastName: 'Mantovani', email: 'staff.milano@bikerent.com',     password: pwdStaff, roleName: 'STAFF' } })
+  await prisma.user.upsert({ where: { email: 'staff.roma@bikerent.com' },       update: {}, create: { firstName: 'Davide', lastName: 'Esposito',  email: 'staff.roma@bikerent.com',       password: pwdStaff, roleName: 'STAFF' } })
+  await prisma.user.upsert({ where: { email: 'staff.torino@bikerent.com' },     update: {}, create: { firstName: 'Sara',   lastName: 'Ricci',     email: 'staff.torino@bikerent.com',     password: pwdStaff, roleName: 'STAFF' } })
   console.log('✅ Staff creato')
 
   // ==========================================
-  // 3. CLIENTI (20 utenti)
+  // 3. CLIENTI
   // ==========================================
   const pwdCustomer = await bcrypt.hash('changeme123', 10)
 
   const clientiData = [
-    { firstName: 'Mario',      lastName: 'Rossi',       email: 'mario.rossi@gmail.com' },
-    { firstName: 'Giulia',     lastName: 'Bianchi',     email: 'giulia.bianchi@yahoo.it' },
-    { firstName: 'Alessandro', lastName: 'Verdi',       email: 'ale.verdi@outlook.com' },
-    { firstName: 'Francesca',  lastName: 'Colombo',     email: 'fra.colombo@gmail.com' },
-    { firstName: 'Lorenzo',    lastName: 'Mancini',     email: 'lore.mancini@libero.it' },
-    { firstName: 'Valentina',  lastName: 'Galli',       email: 'vale.galli@gmail.com' },
-    { firstName: 'Matteo',     lastName: 'Conti',       email: 'matteo.conti@hotmail.it' },
-    { firstName: 'Elena',      lastName: 'Ricci',       email: 'elena.ricci@gmail.com' },
-    { firstName: 'Simone',     lastName: 'Bruno',       email: 'simone.bruno@outlook.com' },
-    { firstName: 'Marta',      lastName: 'De Luca',     email: 'marta.deluca@gmail.com' },
-    { firstName: 'Andrea',     lastName: 'Fontana',     email: 'andrea.fontana@yahoo.com' },
-    { firstName: 'Sofia',      lastName: 'Moretti',     email: 'sofia.moretti@gmail.com' },
-    { firstName: 'Riccardo',   lastName: 'Ferrari',     email: 'ric.ferrari@libero.it' },
-    { firstName: 'Beatrice',   lastName: 'Leone',       email: 'bea.leone@gmail.com' },
-    { firstName: 'Filippo',    lastName: 'Marini',      email: 'fil.marini@outlook.com' },
-    { firstName: 'Giorgia',    lastName: 'Costa',       email: 'gio.costa@gmail.com' },
-    { firstName: 'Marco',      lastName: 'Martinelli',  email: 'marco.martinelli@yahoo.it' },
-    { firstName: 'Alessia',    lastName: 'Greco',       email: 'alessia.greco@gmail.com' },
-    { firstName: 'Nicola',     lastName: 'Barbieri',    email: 'nicola.barbieri@libero.it' },
-    { firstName: 'Camilla',    lastName: 'Palumbo',     email: 'camilla.palumbo@gmail.com' },
+    { firstName: 'Mario',      lastName: 'Rossi',      email: 'mario.rossi@gmail.com' },
+    { firstName: 'Giulia',     lastName: 'Bianchi',    email: 'giulia.bianchi@yahoo.it' },
+    { firstName: 'Alessandro', lastName: 'Verdi',      email: 'ale.verdi@outlook.com' },
+    { firstName: 'Francesca',  lastName: 'Colombo',    email: 'fra.colombo@gmail.com' },
+    { firstName: 'Lorenzo',    lastName: 'Mancini',    email: 'lore.mancini@libero.it' },
+    { firstName: 'Valentina',  lastName: 'Galli',      email: 'vale.galli@gmail.com' },
+    { firstName: 'Matteo',     lastName: 'Conti',      email: 'matteo.conti@hotmail.it' },
+    { firstName: 'Elena',      lastName: 'Ricci',      email: 'elena.ricci@gmail.com' },
+    { firstName: 'Simone',     lastName: 'Bruno',      email: 'simone.bruno@outlook.com' },
+    { firstName: 'Marta',      lastName: 'De Luca',    email: 'marta.deluca@gmail.com' },
+    { firstName: 'Andrea',     lastName: 'Fontana',    email: 'andrea.fontana@yahoo.com' },
+    { firstName: 'Sofia',      lastName: 'Moretti',    email: 'sofia.moretti@gmail.com' },
+    { firstName: 'Riccardo',   lastName: 'Ferrari',    email: 'ric.ferrari@libero.it' },
+    { firstName: 'Beatrice',   lastName: 'Leone',      email: 'bea.leone@gmail.com' },
+    { firstName: 'Filippo',    lastName: 'Marini',     email: 'fil.marini@outlook.com' },
+    { firstName: 'Giorgia',    lastName: 'Costa',      email: 'gio.costa@gmail.com' },
+    { firstName: 'Marco',      lastName: 'Martinelli', email: 'marco.martinelli@yahoo.it' },
+    { firstName: 'Alessia',    lastName: 'Greco',      email: 'alessia.greco@gmail.com' },
+    { firstName: 'Nicola',     lastName: 'Barbieri',   email: 'nicola.barbieri@libero.it' },
+    { firstName: 'Camilla',    lastName: 'Palumbo',    email: 'camilla.palumbo@gmail.com' },
   ]
 
   const clienti = await Promise.all(
     clientiData.map(c =>
       prisma.user.upsert({
-        where: { email: c.email },
+        where:  { email: c.email },
         update: {},
-        create: { ...c, password: pwdCustomer, roleName: 'CUSTOMER' }
+        create: { ...c, password: pwdCustomer, roleName: 'CUSTOMER' },
       })
     )
   )
   console.log(`✅ ${clienti.length} clienti creati`)
 
   // ==========================================
-  // 4. LOCATION (4 punti vendita)
+  // 4. LOCATION
   // ==========================================
-  const locMilano = await prisma.location.create({
-    data: { nome: 'Sede Centrale Milano', indirizzo: 'Via Dante 14, Milano', prezzoMezzaGiornata: 16.0 }
-  })
-  const locRoma = await prisma.location.create({
-    data: { nome: 'Roma Termini', indirizzo: 'Piazza dei Cinquecento 1, Roma', prezzoMezzaGiornata: 18.0 }
-  })
-  const locTorino = await prisma.location.create({
-    data: { nome: 'Torino Centro', indirizzo: 'Piazza Castello 9, Torino', prezzoMezzaGiornata: 14.0 }
-  })
-  const locFirenze = await prisma.location.create({
-    data: { nome: 'Firenze Santa Maria Novella', indirizzo: 'Piazza della Stazione 4, Firenze', prezzoMezzaGiornata: 17.0 }
-  })
-  const negozi = [locMilano, locRoma, locTorino, locFirenze]
+  const locMilano  = await prisma.location.create({ data: { nome: 'Sede Centrale Milano',          indirizzo: 'Via Dante 14, Milano' } })
+  const locRoma    = await prisma.location.create({ data: { nome: 'Roma Termini',                  indirizzo: 'Piazza dei Cinquecento 1, Roma' } })
+  const locTorino  = await prisma.location.create({ data: { nome: 'Torino Centro',                 indirizzo: 'Piazza Castello 9, Torino' } })
+  const locFirenze = await prisma.location.create({ data: { nome: 'Firenze Santa Maria Novella',   indirizzo: 'Piazza della Stazione 4, Firenze' } })
   console.log('✅ 4 location create')
 
   // ==========================================
-  // 5. TIPOLOGIE (solo Elettrica e Muscolare)
+  // 5. ACCESSORI
   // ==========================================
-  const tipoElettrica  = await prisma.tipologia.create({ data: { nome: 'Elettrica' } })
-  const tipoMuscolare  = await prisma.tipologia.create({ data: { nome: 'Muscolare' } })
+  const accCasco      = await prisma.accessorio.create({ data: { nome: 'Casco di Protezione',          prezzo: 5.0  } })
+  const accBorsa      = await prisma.accessorio.create({ data: { nome: 'Borsa Laterale Impermeabile',  prezzo: 7.0  } })
+  const accSeggiolino = await prisma.accessorio.create({ data: { nome: 'Seggiolino Bimbo',             prezzo: 10.0 } })
+  const accLucchetto  = await prisma.accessorio.create({ data: { nome: 'Lucchetto Antifurto',          prezzo: 3.0  } })
+  const accPompa      = await prisma.accessorio.create({ data: { nome: 'Kit Riparazione Pneumatici',   prezzo: 4.0  } })
+  console.log('✅ 5 accessori creati')
 
   // ==========================================
-  // 6. ACCESSORI
+  // 6. ASSICURAZIONI
   // ==========================================
-  const accCasco       = await prisma.accessorio.create({ data: { nome: 'Casco di Protezione',         prezzo: 5.0  } })
-  const accBorsa       = await prisma.accessorio.create({ data: { nome: 'Borsa Laterale Impermeabile', prezzo: 7.0  } })
-  const accSeggiolino  = await prisma.accessorio.create({ data: { nome: 'Seggiolino Bimbo',             prezzo: 10.0 } })
-  const accLucchetto   = await prisma.accessorio.create({ data: { nome: 'Lucchetto Antifurto',          prezzo: 3.0  } })
-  const accPompa       = await prisma.accessorio.create({ data: { nome: 'Kit Riparazione Pneumatici',   prezzo: 4.0  } })
-  const accessoriTutti = [accCasco, accBorsa, accSeggiolino, accLucchetto, accPompa]
+  const assBase  = await prisma.assicurazione.create({ data: { tipo: 'Base',         dettagli: 'Copertura responsabilità civile verso terzi',    prezzo: 0.0  } })
+  const assMedio = await prisma.assicurazione.create({ data: { tipo: 'Standard',     dettagli: 'Copertura danni accidentali con franchigia 50€', prezzo: 6.0  } })
+  const assKasko = await prisma.assicurazione.create({ data: { tipo: 'Kasko Totale', dettagli: 'Zero franchigia su furto e danni vandalici',      prezzo: 12.0 } })
+  console.log('✅ 3 assicurazioni create')
 
   // ==========================================
-  // 7. ASSICURAZIONI
-  // ==========================================
-  const assBase  = await prisma.assicurazione.create({ data: { tipo: 'Base',          dettagli: 'Copertura responsabilità civile verso terzi',    prezzo: 0.0  } })
-  const assMedio = await prisma.assicurazione.create({ data: { tipo: 'Standard',      dettagli: 'Copertura danni accidentali con franchigia 50€', prezzo: 6.0  } })
-  const assKasko = await prisma.assicurazione.create({ data: { tipo: 'Kasko Totale',  dettagli: 'Zero franchigia su furto e danni vandalici',      prezzo: 12.0 } })
-  const assurazioni = [assBase, assMedio, assKasko]
-  console.log('✅ Accessori e assicurazioni create')
-
-  // ==========================================
-  // 8. CATALOGO BICICLETTE (6 modelli)
+  // 7. BICICLETTE + SPECIFICHE
+  //    Nuovo schema: Bicicletta { type } + SpecificheBicicletta { size, price }
+  //    Niente Modello / Tipologia / Dimensione
   // ==========================================
 
-  // Modelli elettrici
-  const modTrekElettrica   = await prisma.modello.create({ data: { nome: 'Trek PowerFly E' } })
-  const modSpecialized     = await prisma.modello.create({ data: { nome: 'Specialized Turbo Vado' } })
-  const modGiantElettrica  = await prisma.modello.create({ data: { nome: 'Giant Explore E+' } })
-
-  // Modelli muscolari
-  const modCityClassic     = await prisma.modello.create({ data: { nome: 'City Bike Classic' } })
-  const modScottGravel     = await prisma.modello.create({ data: { nome: 'Scott Speedster Gravel' } })
-  const modBianchi         = await prisma.modello.create({ data: { nome: 'Bianchi C-Sport' } })
-
-  // Biciclette fisiche
-  const biciTrekE = await prisma.bicicletta.create({
+  // Elettriche
+  const bikeTrekE = await prisma.bicicletta.create({
     data: {
-      modelloId: modTrekElettrica.id,
-      tipologie: { connect: [{ id: tipoElettrica.id }] },
-      dimensioni: { create: [
-        { taglia: 'S', quantitaElettrico: 5,  quantitaMuscolare: 0 },
-        { taglia: 'M', quantitaElettrico: 10, quantitaMuscolare: 0 },
-        { taglia: 'L', quantitaElettrico: 8,  quantitaMuscolare: 0 },
-        { taglia: 'XL',quantitaElettrico: 4,  quantitaMuscolare: 0 },
-      ]}
-    }
+      type: 'Trek PowerFly E — Elettrica',
+      specifics: { create: [
+        { size: 'S',  price: 28.0 },
+        { size: 'M',  price: 28.0 },
+        { size: 'L',  price: 28.0 },
+        { size: 'XL', price: 30.0 },
+      ]},
+    },
+    include: { specifics: true },
   })
 
-  const biciSpecialized = await prisma.bicicletta.create({
+  const bikeSpecialized = await prisma.bicicletta.create({
     data: {
-      modelloId: modSpecialized.id,
-      tipologie: { connect: [{ id: tipoElettrica.id }] },
-      dimensioni: { create: [
-        { taglia: 'S', quantitaElettrico: 4, quantitaMuscolare: 0 },
-        { taglia: 'M', quantitaElettrico: 7, quantitaMuscolare: 0 },
-        { taglia: 'L', quantitaElettrico: 6, quantitaMuscolare: 0 },
-      ]}
-    }
+      type: 'Specialized Turbo Vado — Elettrica',
+      specifics: { create: [
+        { size: 'S', price: 26.0 },
+        { size: 'M', price: 26.0 },
+        { size: 'L', price: 26.0 },
+      ]},
+    },
+    include: { specifics: true },
   })
 
-  const biciGiantE = await prisma.bicicletta.create({
+  const bikeGiantE = await prisma.bicicletta.create({
     data: {
-      modelloId: modGiantElettrica.id,
-      tipologie: { connect: [{ id: tipoElettrica.id }] },
-      dimensioni: { create: [
-        { taglia: 'M', quantitaElettrico: 6, quantitaMuscolare: 0 },
-        { taglia: 'L', quantitaElettrico: 5, quantitaMuscolare: 0 },
-      ]}
-    }
+      type: 'Giant Explore E+ — Elettrica',
+      specifics: { create: [
+        { size: 'M', price: 25.0 },
+        { size: 'L', price: 25.0 },
+      ]},
+    },
+    include: { specifics: true },
   })
 
-  const biciCity = await prisma.bicicletta.create({
+  // Muscolari
+  const bikeCity = await prisma.bicicletta.create({
     data: {
-      modelloId: modCityClassic.id,
-      tipologie: { connect: [{ id: tipoMuscolare.id }] },
-      dimensioni: { create: [
-        { taglia: 'S',  quantitaElettrico: 0, quantitaMuscolare: 15 },
-        { taglia: 'M',  quantitaElettrico: 0, quantitaMuscolare: 20 },
-        { taglia: 'L',  quantitaElettrico: 0, quantitaMuscolare: 14 },
-        { taglia: 'XL', quantitaElettrico: 0, quantitaMuscolare: 8  },
-      ]}
-    }
+      type: 'City Bike Classic — Muscolare',
+      specifics: { create: [
+        { size: 'S',  price: 14.0 },
+        { size: 'M',  price: 14.0 },
+        { size: 'L',  price: 14.0 },
+        { size: 'XL', price: 15.0 },
+      ]},
+    },
+    include: { specifics: true },
   })
 
-  const biciScott = await prisma.bicicletta.create({
+  const bikeScott = await prisma.bicicletta.create({
     data: {
-      modelloId: modScottGravel.id,
-      tipologie: { connect: [{ id: tipoMuscolare.id }] },
-      dimensioni: { create: [
-        { taglia: 'S', quantitaElettrico: 0, quantitaMuscolare: 8  },
-        { taglia: 'M', quantitaElettrico: 0, quantitaMuscolare: 12 },
-        { taglia: 'L', quantitaElettrico: 0, quantitaMuscolare: 10 },
-      ]}
-    }
+      type: 'Scott Speedster Gravel — Muscolare',
+      specifics: { create: [
+        { size: 'S', price: 18.0 },
+        { size: 'M', price: 18.0 },
+        { size: 'L', price: 18.0 },
+      ]},
+    },
+    include: { specifics: true },
   })
 
-  const biciBianchi = await prisma.bicicletta.create({
+  const bikeBianchi = await prisma.bicicletta.create({
     data: {
-      modelloId: modBianchi.id,
-      tipologie: { connect: [{ id: tipoMuscolare.id }] },
-      dimensioni: { create: [
-        { taglia: 'S', quantitaElettrico: 0, quantitaMuscolare: 6  },
-        { taglia: 'M', quantitaElettrico: 0, quantitaMuscolare: 9  },
-        { taglia: 'L', quantitaElettrico: 0, quantitaMuscolare: 7  },
-      ]}
-    }
+      type: 'Bianchi C-Sport — Muscolare',
+      specifics: { create: [
+        { size: 'S', price: 16.0 },
+        { size: 'M', price: 16.0 },
+        { size: 'L', price: 16.0 },
+      ]},
+    },
+    include: { specifics: true },
   })
 
-  const tutteLeBici = [biciTrekE, biciSpecialized, biciGiantE, biciCity, biciScott, biciBianchi]
-  console.log('✅ 6 modelli biciclette creati')
+  console.log('✅ 6 biciclette con specifiche create')
+
+  // Helper: prende la specifica per taglia, fallback alla prima disponibile
+  const spec = (bike: typeof bikeTrekE, size: string) =>
+    bike.specifics.find(s => s.size === size) ?? bike.specifics[0]
 
   // ==========================================
-  // 9. STOCK PER NEGOZIO
+  // 8. STOCK PER LOCATION (BiciclettaLocation)
+  //    numberE = unità elettriche, numberM = unità muscolari
+  //    Per semplicità: elettriche → numberE > 0, muscolari → numberM > 0
   // ==========================================
 
-  // Milano — grande hub, tutto disponibile
-  await prisma.stockBicicletta.createMany({ data: [
-    { locationId: locMilano.id, biciclettaId: biciTrekE.id,       quantita: 18, inManutenzione: 2 },
-    { locationId: locMilano.id, biciclettaId: biciSpecialized.id, quantita: 12, inManutenzione: 1 },
-    { locationId: locMilano.id, biciclettaId: biciGiantE.id,      quantita: 8,  inManutenzione: 0 },
-    { locationId: locMilano.id, biciclettaId: biciCity.id,        quantita: 35, inManutenzione: 3 },
-    { locationId: locMilano.id, biciclettaId: biciScott.id,       quantita: 20, inManutenzione: 0 },
-    { locationId: locMilano.id, biciclettaId: biciBianchi.id,     quantita: 14, inManutenzione: 1 },
+  // Milano
+  await prisma.biciclettaLocation.createMany({ data: [
+    { locationId: locMilano.id, biciclettaSpecificId: spec(bikeTrekE,       'M').id, numberE: 10, numberM: 0 },
+    { locationId: locMilano.id, biciclettaSpecificId: spec(bikeSpecialized, 'M').id, numberE: 8,  numberM: 0 },
+    { locationId: locMilano.id, biciclettaSpecificId: spec(bikeGiantE,      'M').id, numberE: 6,  numberM: 0 },
+    { locationId: locMilano.id, biciclettaSpecificId: spec(bikeCity,        'M').id, numberE: 0,  numberM: 20 },
+    { locationId: locMilano.id, biciclettaSpecificId: spec(bikeScott,       'M').id, numberE: 0,  numberM: 15 },
+    { locationId: locMilano.id, biciclettaSpecificId: spec(bikeBianchi,     'M').id, numberE: 0,  numberM: 12 },
   ]})
 
-  // Roma — focus turisti, più elettriche
-  await prisma.stockBicicletta.createMany({ data: [
-    { locationId: locRoma.id, biciclettaId: biciTrekE.id,       quantita: 14, inManutenzione: 0 },
-    { locationId: locRoma.id, biciclettaId: biciSpecialized.id, quantita: 10, inManutenzione: 2 },
-    { locationId: locRoma.id, biciclettaId: biciGiantE.id,      quantita: 6,  inManutenzione: 1 },
-    { locationId: locRoma.id, biciclettaId: biciCity.id,        quantita: 25, inManutenzione: 0 },
-    { locationId: locRoma.id, biciclettaId: biciScott.id,       quantita: 8,  inManutenzione: 1 },
-    { locationId: locRoma.id, biciclettaId: biciBianchi.id,     quantita: 10, inManutenzione: 0 },
+  // Roma
+  await prisma.biciclettaLocation.createMany({ data: [
+    { locationId: locRoma.id, biciclettaSpecificId: spec(bikeTrekE,       'M').id, numberE: 8,  numberM: 0 },
+    { locationId: locRoma.id, biciclettaSpecificId: spec(bikeSpecialized, 'M').id, numberE: 7,  numberM: 0 },
+    { locationId: locRoma.id, biciclettaSpecificId: spec(bikeGiantE,      'L').id, numberE: 5,  numberM: 0 },
+    { locationId: locRoma.id, biciclettaSpecificId: spec(bikeCity,        'M').id, numberE: 0,  numberM: 18 },
+    { locationId: locRoma.id, biciclettaSpecificId: spec(bikeScott,       'M').id, numberE: 0,  numberM: 8  },
+    { locationId: locRoma.id, biciclettaSpecificId: spec(bikeBianchi,     'M').id, numberE: 0,  numberM: 10 },
   ]})
 
-  // Torino — medio, più muscolari
-  await prisma.stockBicicletta.createMany({ data: [
-    { locationId: locTorino.id, biciclettaId: biciTrekE.id,       quantita: 6,  inManutenzione: 1 },
-    { locationId: locTorino.id, biciclettaId: biciSpecialized.id, quantita: 4,  inManutenzione: 0 },
-    { locationId: locTorino.id, biciclettaId: biciCity.id,        quantita: 20, inManutenzione: 2 },
-    { locationId: locTorino.id, biciclettaId: biciScott.id,       quantita: 14, inManutenzione: 0 },
-    { locationId: locTorino.id, biciclettaId: biciBianchi.id,     quantita: 8,  inManutenzione: 1 },
+  // Torino
+  await prisma.biciclettaLocation.createMany({ data: [
+    { locationId: locTorino.id, biciclettaSpecificId: spec(bikeTrekE,       'S').id, numberE: 5,  numberM: 0 },
+    { locationId: locTorino.id, biciclettaSpecificId: spec(bikeSpecialized, 'S').id, numberE: 4,  numberM: 0 },
+    { locationId: locTorino.id, biciclettaSpecificId: spec(bikeCity,        'M').id, numberE: 0,  numberM: 16 },
+    { locationId: locTorino.id, biciclettaSpecificId: spec(bikeScott,       'L').id, numberE: 0,  numberM: 12 },
+    { locationId: locTorino.id, biciclettaSpecificId: spec(bikeBianchi,     'M').id, numberE: 0,  numberM: 8  },
   ]})
 
-  // Firenze — piccolo, solo i modelli più richiesti
-  await prisma.stockBicicletta.createMany({ data: [
-    { locationId: locFirenze.id, biciclettaId: biciTrekE.id,   quantita: 8,  inManutenzione: 0 },
-    { locationId: locFirenze.id, biciclettaId: biciGiantE.id,  quantita: 4,  inManutenzione: 1 },
-    { locationId: locFirenze.id, biciclettaId: biciCity.id,    quantita: 18, inManutenzione: 1 },
-    { locationId: locFirenze.id, biciclettaId: biciBianchi.id, quantita: 6,  inManutenzione: 0 },
+  // Firenze
+  await prisma.biciclettaLocation.createMany({ data: [
+    { locationId: locFirenze.id, biciclettaSpecificId: spec(bikeTrekE,   'L').id, numberE: 6,  numberM: 0 },
+    { locationId: locFirenze.id, biciclettaSpecificId: spec(bikeGiantE,  'M').id, numberE: 4,  numberM: 0 },
+    { locationId: locFirenze.id, biciclettaSpecificId: spec(bikeCity,    'S').id, numberE: 0,  numberM: 14 },
+    { locationId: locFirenze.id, biciclettaSpecificId: spec(bikeBianchi, 'S').id, numberE: 0,  numberM: 6  },
   ]})
-  console.log('✅ Stock popolati per 4 negozi')
+
+  console.log('✅ Stock BiciclettaLocation popolato per 4 negozi')
 
   // ==========================================
-  // 10. PRENOTAZIONI STORICHE (40 prenotazioni)
-  //     Mix realistico di stati, negozi, bici, utenti
+  // 9. PRENOTAZIONI
+  //    - biciclettaId ora punta a SpecificheBicicletta.id
+  //    - dataRitiro + oraRitiro separati (Date + String)
+  //    - dataConsegna + oraConsegna separati
+  //    - StatoPrenotazione: PENDING | PICKED_UP | RETURNED | LATE
+  //      (DAMAGED e CANCELLED non esistono nel nuovo enum → mappati su RETURNED/PENDING)
+  //    - Accessori tramite AccessorioPrenotazione esplicita
   // ==========================================
 
-  type StatoPren = 'PENDING' | 'PICKED_UP' | 'RETURNED' | 'LATE' | 'DAMAGED' | 'CANCELLED'
+  type StatoPren = 'PENDING' | 'PICKED_UP' | 'RETURNED' | 'LATE'
 
   interface PrenData {
-    ritiro: Date
-    consegna: Date
-    pickUp: Date
-    stato: StatoPren
-    totale: number
-    utenteIdx: number
-    bici: typeof biciTrekE
-    location: typeof locMilano
-    assicurazione: typeof assBase
+    dataRitiro:   Date
+    oraRitiro:    string
+    dataConsegna: Date
+    oraConsegna:  string
+    stato:        StatoPren
+    totale:       number
+    utenteIdx:    number
+    specifica:    { id: number }
+    location:     { id: number }
+    assicurazione:{ id: number }
     accessoriIds: number[]
-    note?: string
+    note?:        string
   }
 
   const prenotazioni: PrenData[] = [
-    // --- MAGGIO 2026 (storico completato) ---
-    { ritiro: new Date('2026-05-05T09:00Z'), consegna: new Date('2026-05-05T13:00Z'), pickUp: new Date('2026-05-05T09:00Z'), stato: 'RETURNED', totale: 21.0, utenteIdx: 0,  bici: biciCity,       location: locMilano,  assicurazione: assBase,  accessoriIds: [accCasco.id] },
-    { ritiro: new Date('2026-05-06T10:00Z'), consegna: new Date('2026-05-06T18:00Z'), pickUp: new Date('2026-05-06T10:10Z'), stato: 'RETURNED', totale: 44.0, utenteIdx: 1,  bici: biciTrekE,      location: locRoma,    assicurazione: assKasko, accessoriIds: [accCasco.id, accBorsa.id] },
-    { ritiro: new Date('2026-05-07T09:00Z'), consegna: new Date('2026-05-07T13:00Z'), pickUp: new Date('2026-05-07T09:05Z'), stato: 'RETURNED', totale: 18.0, utenteIdx: 2,  bici: biciScott,      location: locTorino,  assicurazione: assBase,  accessoriIds: [] },
-    { ritiro: new Date('2026-05-08T11:00Z'), consegna: new Date('2026-05-08T19:00Z'), pickUp: new Date('2026-05-08T11:00Z'), stato: 'RETURNED', totale: 52.0, utenteIdx: 3,  bici: biciSpecialized,location: locMilano,  assicurazione: assMedio, accessoriIds: [accLucchetto.id] },
-    { ritiro: new Date('2026-05-09T09:00Z'), consegna: new Date('2026-05-09T13:00Z'), pickUp: new Date('2026-05-09T09:00Z'), stato: 'RETURNED', totale: 29.0, utenteIdx: 4,  bici: biciBianchi,    location: locFirenze, assicurazione: assBase,  accessoriIds: [accCasco.id, accPompa.id] },
-    { ritiro: new Date('2026-05-10T10:00Z'), consegna: new Date('2026-05-10T18:00Z'), pickUp: new Date('2026-05-10T10:15Z'), stato: 'RETURNED', totale: 38.0, utenteIdx: 5,  bici: biciCity,       location: locRoma,    assicurazione: assMedio, accessoriIds: [accBorsa.id] },
-    { ritiro: new Date('2026-05-12T09:00Z'), consegna: new Date('2026-05-12T13:00Z'), pickUp: new Date('2026-05-12T09:00Z'), stato: 'RETURNED', totale: 16.0, utenteIdx: 6,  bici: biciCity,       location: locTorino,  assicurazione: assBase,  accessoriIds: [] },
-    { ritiro: new Date('2026-05-13T09:00Z'), consegna: new Date('2026-05-14T13:00Z'), pickUp: new Date('2026-05-13T09:05Z'), stato: 'RETURNED', totale: 67.0, utenteIdx: 7,  bici: biciTrekE,      location: locMilano,  assicurazione: assKasko, accessoriIds: [accCasco.id, accBorsa.id, accLucchetto.id] },
-    { ritiro: new Date('2026-05-14T10:00Z'), consegna: new Date('2026-05-14T18:00Z'), pickUp: new Date('2026-05-14T10:00Z'), stato: 'RETURNED', totale: 31.0, utenteIdx: 8,  bici: biciScott,      location: locFirenze, assicurazione: assBase,  accessoriIds: [accPompa.id] },
-    { ritiro: new Date('2026-05-15T09:00Z'), consegna: new Date('2026-05-15T13:00Z'), pickUp: new Date('2026-05-15T09:10Z'), stato: 'RETURNED', totale: 24.0, utenteIdx: 9,  bici: biciBianchi,    location: locMilano,  assicurazione: assBase,  accessoriIds: [accCasco.id] },
-    { ritiro: new Date('2026-05-16T11:00Z'), consegna: new Date('2026-05-17T11:00Z'), pickUp: new Date('2026-05-16T11:00Z'), stato: 'RETURNED', totale: 58.0, utenteIdx: 10, bici: biciGiantE,     location: locRoma,    assicurazione: assKasko, accessoriIds: [accCasco.id, accSeggiolino.id] },
-    { ritiro: new Date('2026-05-17T09:00Z'), consegna: new Date('2026-05-17T13:00Z'), pickUp: new Date('2026-05-17T09:00Z'), stato: 'CANCELLED', totale: 0.0, utenteIdx: 11, bici: biciCity,       location: locTorino,  assicurazione: assBase,  accessoriIds: [] },
-    { ritiro: new Date('2026-05-18T10:00Z'), consegna: new Date('2026-05-18T18:00Z'), pickUp: new Date('2026-05-18T10:00Z'), stato: 'RETURNED', totale: 45.0, utenteIdx: 12, bici: biciSpecialized,location: locFirenze, assicurazione: assMedio, accessoriIds: [accCasco.id, accBorsa.id] },
-    { ritiro: new Date('2026-05-19T09:00Z'), consegna: new Date('2026-05-19T13:00Z'), pickUp: new Date('2026-05-19T09:05Z'), stato: 'RETURNED', totale: 19.0, utenteIdx: 13, bici: biciCity,       location: locMilano,  assicurazione: assBase,  accessoriIds: [] },
-    { ritiro: new Date('2026-05-20T10:00Z'), consegna: new Date('2026-05-21T10:00Z'), pickUp: new Date('2026-05-20T10:10Z'), stato: 'DAMAGED',  totale: 54.0, utenteIdx: 14, bici: biciTrekE,      location: locRoma,    assicurazione: assMedio, accessoriIds: [accCasco.id], note: 'Graffi profondi sul telaio, rottura leva freno anteriore.' },
-    { ritiro: new Date('2026-05-21T09:00Z'), consegna: new Date('2026-05-21T13:00Z'), pickUp: new Date('2026-05-21T09:00Z'), stato: 'RETURNED', totale: 22.0, utenteIdx: 15, bici: biciBianchi,    location: locTorino,  assicurazione: assBase,  accessoriIds: [accLucchetto.id] },
-    { ritiro: new Date('2026-05-22T11:00Z'), consegna: new Date('2026-05-22T19:00Z'), pickUp: new Date('2026-05-22T11:10Z'), stato: 'RETURNED', totale: 36.0, utenteIdx: 16, bici: biciScott,      location: locMilano,  assicurazione: assBase,  accessoriIds: [accPompa.id] },
-    { ritiro: new Date('2026-05-23T09:00Z'), consegna: new Date('2026-05-23T13:00Z'), pickUp: new Date('2026-05-23T09:00Z'), stato: 'CANCELLED', totale: 0.0, utenteIdx: 17, bici: biciGiantE,     location: locFirenze, assicurazione: assBase,  accessoriIds: [] },
-    { ritiro: new Date('2026-05-25T10:00Z'), consegna: new Date('2026-05-25T18:00Z'), pickUp: new Date('2026-05-25T10:00Z'), stato: 'RETURNED', totale: 48.0, utenteIdx: 18, bici: biciTrekE,      location: locMilano,  assicurazione: assKasko, accessoriIds: [accCasco.id, accBorsa.id] },
-    { ritiro: new Date('2026-05-26T09:00Z'), consegna: new Date('2026-05-26T13:00Z'), pickUp: new Date('2026-05-26T09:05Z'), stato: 'RETURNED', totale: 17.0, utenteIdx: 19, bici: biciCity,       location: locRoma,    assicurazione: assBase,  accessoriIds: [] },
-    { ritiro: new Date('2026-05-27T09:00Z'), consegna: new Date('2026-05-28T09:00Z'), pickUp: new Date('2026-05-27T09:00Z'), stato: 'LATE',     totale: 72.0, utenteIdx: 0,  bici: biciSpecialized,location: locTorino,  assicurazione: assMedio, accessoriIds: [accCasco.id, accLucchetto.id], note: 'Cliente bloccato in autostrada, rientro previsto in serata.' },
-    { ritiro: new Date('2026-05-28T10:00Z'), consegna: new Date('2026-05-28T14:00Z'), pickUp: new Date('2026-05-28T10:00Z'), stato: 'RETURNED', totale: 26.0, utenteIdx: 1,  bici: biciCity,       location: locFirenze, assicurazione: assBase,  accessoriIds: [accBorsa.id] },
-    { ritiro: new Date('2026-05-29T11:00Z'), consegna: new Date('2026-05-30T11:00Z'), pickUp: new Date('2026-05-29T11:10Z'), stato: 'RETURNED', totale: 61.0, utenteIdx: 2,  bici: biciGiantE,     location: locMilano,  assicurazione: assKasko, accessoriIds: [accCasco.id, accSeggiolino.id] },
-    { ritiro: new Date('2026-05-30T09:00Z'), consegna: new Date('2026-05-30T13:00Z'), pickUp: new Date('2026-05-30T09:00Z'), stato: 'RETURNED', totale: 20.0, utenteIdx: 3,  bici: biciScott,      location: locRoma,    assicurazione: assBase,  accessoriIds: [] },
-    { ritiro: new Date('2026-05-31T10:00Z'), consegna: new Date('2026-05-31T18:00Z'), pickUp: new Date('2026-05-31T10:05Z'), stato: 'DAMAGED',  totale: 53.0, utenteIdx: 4,  bici: biciCity,       location: locMilano,  assicurazione: assMedio, accessoriIds: [accCasco.id], note: 'Foratura doppia e sellino rotto durante caduta.' },
+    // ── MAGGIO 2026 ───────────────────────────────────────────────────────────
+    { dataRitiro: new Date('2026-05-05'), oraRitiro: '09:00', dataConsegna: new Date('2026-05-05'), oraConsegna: '13:00', stato: 'RETURNED', totale: 21.0, utenteIdx: 0,  specifica: spec(bikeCity,       'M'), location: locMilano,  assicurazione: assBase,  accessoriIds: [accCasco.id] },
+    { dataRitiro: new Date('2026-05-06'), oraRitiro: '10:00', dataConsegna: new Date('2026-05-06'), oraConsegna: '18:00', stato: 'RETURNED', totale: 44.0, utenteIdx: 1,  specifica: spec(bikeTrekE,      'M'), location: locRoma,    assicurazione: assKasko, accessoriIds: [accCasco.id, accBorsa.id] },
+    { dataRitiro: new Date('2026-05-07'), oraRitiro: '09:00', dataConsegna: new Date('2026-05-07'), oraConsegna: '13:00', stato: 'RETURNED', totale: 18.0, utenteIdx: 2,  specifica: spec(bikeScott,      'M'), location: locTorino,  assicurazione: assBase,  accessoriIds: [] },
+    { dataRitiro: new Date('2026-05-08'), oraRitiro: '11:00', dataConsegna: new Date('2026-05-08'), oraConsegna: '19:00', stato: 'RETURNED', totale: 52.0, utenteIdx: 3,  specifica: spec(bikeSpecialized,'M'), location: locMilano,  assicurazione: assMedio, accessoriIds: [accLucchetto.id] },
+    { dataRitiro: new Date('2026-05-09'), oraRitiro: '09:00', dataConsegna: new Date('2026-05-09'), oraConsegna: '13:00', stato: 'RETURNED', totale: 29.0, utenteIdx: 4,  specifica: spec(bikeBianchi,    'S'), location: locFirenze, assicurazione: assBase,  accessoriIds: [accCasco.id, accPompa.id] },
+    { dataRitiro: new Date('2026-05-10'), oraRitiro: '10:00', dataConsegna: new Date('2026-05-10'), oraConsegna: '18:00', stato: 'RETURNED', totale: 38.0, utenteIdx: 5,  specifica: spec(bikeCity,       'L'), location: locRoma,    assicurazione: assMedio, accessoriIds: [accBorsa.id] },
+    { dataRitiro: new Date('2026-05-12'), oraRitiro: '09:00', dataConsegna: new Date('2026-05-12'), oraConsegna: '13:00', stato: 'RETURNED', totale: 16.0, utenteIdx: 6,  specifica: spec(bikeCity,       'S'), location: locTorino,  assicurazione: assBase,  accessoriIds: [] },
+    { dataRitiro: new Date('2026-05-13'), oraRitiro: '09:00', dataConsegna: new Date('2026-05-14'), oraConsegna: '13:00', stato: 'RETURNED', totale: 67.0, utenteIdx: 7,  specifica: spec(bikeTrekE,      'L'), location: locMilano,  assicurazione: assKasko, accessoriIds: [accCasco.id, accBorsa.id, accLucchetto.id] },
+    { dataRitiro: new Date('2026-05-14'), oraRitiro: '10:00', dataConsegna: new Date('2026-05-14'), oraConsegna: '18:00', stato: 'RETURNED', totale: 31.0, utenteIdx: 8,  specifica: spec(bikeScott,      'S'), location: locFirenze, assicurazione: assBase,  accessoriIds: [accPompa.id] },
+    { dataRitiro: new Date('2026-05-15'), oraRitiro: '09:00', dataConsegna: new Date('2026-05-15'), oraConsegna: '13:00', stato: 'RETURNED', totale: 24.0, utenteIdx: 9,  specifica: spec(bikeBianchi,    'M'), location: locMilano,  assicurazione: assBase,  accessoriIds: [accCasco.id] },
+    { dataRitiro: new Date('2026-05-16'), oraRitiro: '11:00', dataConsegna: new Date('2026-05-17'), oraConsegna: '11:00', stato: 'RETURNED', totale: 58.0, utenteIdx: 10, specifica: spec(bikeGiantE,     'M'), location: locRoma,    assicurazione: assKasko, accessoriIds: [accCasco.id, accSeggiolino.id] },
+    { dataRitiro: new Date('2026-05-17'), oraRitiro: '09:00', dataConsegna: new Date('2026-05-17'), oraConsegna: '13:00', stato: 'PENDING',  totale: 0.0,  utenteIdx: 11, specifica: spec(bikeCity,       'M'), location: locTorino,  assicurazione: assBase,  accessoriIds: [] },
+    { dataRitiro: new Date('2026-05-18'), oraRitiro: '10:00', dataConsegna: new Date('2026-05-18'), oraConsegna: '18:00', stato: 'RETURNED', totale: 45.0, utenteIdx: 12, specifica: spec(bikeSpecialized,'L'), location: locFirenze, assicurazione: assMedio, accessoriIds: [accCasco.id, accBorsa.id] },
+    { dataRitiro: new Date('2026-05-19'), oraRitiro: '09:00', dataConsegna: new Date('2026-05-19'), oraConsegna: '13:00', stato: 'RETURNED', totale: 19.0, utenteIdx: 13, specifica: spec(bikeCity,       'S'), location: locMilano,  assicurazione: assBase,  accessoriIds: [] },
+    { dataRitiro: new Date('2026-05-20'), oraRitiro: '10:00', dataConsegna: new Date('2026-05-21'), oraConsegna: '10:00', stato: 'RETURNED', totale: 54.0, utenteIdx: 14, specifica: spec(bikeTrekE,      'S'), location: locRoma,    assicurazione: assMedio, accessoriIds: [accCasco.id], note: 'Graffi sul telaio, leva freno riparata.' },
+    { dataRitiro: new Date('2026-05-21'), oraRitiro: '09:00', dataConsegna: new Date('2026-05-21'), oraConsegna: '13:00', stato: 'RETURNED', totale: 22.0, utenteIdx: 15, specifica: spec(bikeBianchi,    'L'), location: locTorino,  assicurazione: assBase,  accessoriIds: [accLucchetto.id] },
+    { dataRitiro: new Date('2026-05-22'), oraRitiro: '11:00', dataConsegna: new Date('2026-05-22'), oraConsegna: '19:00', stato: 'RETURNED', totale: 36.0, utenteIdx: 16, specifica: spec(bikeScott,      'L'), location: locMilano,  assicurazione: assBase,  accessoriIds: [accPompa.id] },
+    { dataRitiro: new Date('2026-05-23'), oraRitiro: '09:00', dataConsegna: new Date('2026-05-23'), oraConsegna: '13:00', stato: 'PENDING',  totale: 0.0,  utenteIdx: 17, specifica: spec(bikeGiantE,     'L'), location: locFirenze, assicurazione: assBase,  accessoriIds: [] },
+    { dataRitiro: new Date('2026-05-25'), oraRitiro: '10:00', dataConsegna: new Date('2026-05-25'), oraConsegna: '18:00', stato: 'RETURNED', totale: 48.0, utenteIdx: 18, specifica: spec(bikeTrekE,      'XL'),location: locMilano,  assicurazione: assKasko, accessoriIds: [accCasco.id, accBorsa.id] },
+    { dataRitiro: new Date('2026-05-26'), oraRitiro: '09:00', dataConsegna: new Date('2026-05-26'), oraConsegna: '13:00', stato: 'RETURNED', totale: 17.0, utenteIdx: 19, specifica: spec(bikeCity,       'XL'),location: locRoma,    assicurazione: assBase,  accessoriIds: [] },
+    { dataRitiro: new Date('2026-05-27'), oraRitiro: '09:00', dataConsegna: new Date('2026-05-28'), oraConsegna: '09:00', stato: 'LATE',     totale: 72.0, utenteIdx: 0,  specifica: spec(bikeSpecialized,'S'), location: locTorino,  assicurazione: assMedio, accessoriIds: [accCasco.id, accLucchetto.id], note: 'Cliente bloccato in autostrada, rientro in serata.' },
+    { dataRitiro: new Date('2026-05-28'), oraRitiro: '10:00', dataConsegna: new Date('2026-05-28'), oraConsegna: '14:00', stato: 'RETURNED', totale: 26.0, utenteIdx: 1,  specifica: spec(bikeCity,       'M'), location: locFirenze, assicurazione: assBase,  accessoriIds: [accBorsa.id] },
+    { dataRitiro: new Date('2026-05-29'), oraRitiro: '11:00', dataConsegna: new Date('2026-05-30'), oraConsegna: '11:00', stato: 'RETURNED', totale: 61.0, utenteIdx: 2,  specifica: spec(bikeGiantE,     'M'), location: locMilano,  assicurazione: assKasko, accessoriIds: [accCasco.id, accSeggiolino.id] },
+    { dataRitiro: new Date('2026-05-30'), oraRitiro: '09:00', dataConsegna: new Date('2026-05-30'), oraConsegna: '13:00', stato: 'RETURNED', totale: 20.0, utenteIdx: 3,  specifica: spec(bikeScott,      'M'), location: locRoma,    assicurazione: assBase,  accessoriIds: [] },
+    { dataRitiro: new Date('2026-05-31'), oraRitiro: '10:00', dataConsegna: new Date('2026-05-31'), oraConsegna: '18:00', stato: 'RETURNED', totale: 53.0, utenteIdx: 4,  specifica: spec(bikeCity,       'L'), location: locMilano,  assicurazione: assMedio, accessoriIds: [accCasco.id], note: 'Foratura e sellino rotto durante caduta.' },
 
-    // --- GIUGNO 2026 (mix attivo) ---
-    { ritiro: new Date('2026-06-01T09:00Z'), consegna: new Date('2026-06-01T13:00Z'), pickUp: new Date('2026-06-01T09:00Z'), stato: 'RETURNED', totale: 23.0, utenteIdx: 5,  bici: biciBianchi,    location: locTorino,  assicurazione: assBase,  accessoriIds: [accCasco.id] },
-    { ritiro: new Date('2026-06-01T10:00Z'), consegna: new Date('2026-06-02T10:00Z'), pickUp: new Date('2026-06-01T10:10Z'), stato: 'RETURNED', totale: 59.0, utenteIdx: 6,  bici: biciTrekE,      location: locRoma,    assicurazione: assKasko, accessoriIds: [accCasco.id, accBorsa.id] },
-    { ritiro: new Date('2026-06-02T09:00Z'), consegna: new Date('2026-06-02T13:00Z'), pickUp: new Date('2026-06-02T09:00Z'), stato: 'RETURNED', totale: 16.0, utenteIdx: 7,  bici: biciCity,       location: locFirenze, assicurazione: assBase,  accessoriIds: [] },
-    { ritiro: new Date('2026-06-02T11:00Z'), consegna: new Date('2026-06-03T11:00Z'), pickUp: new Date('2026-06-02T11:05Z'), stato: 'RETURNED', totale: 47.0, utenteIdx: 8,  bici: biciSpecialized,location: locMilano,  assicurazione: assMedio, accessoriIds: [accLucchetto.id, accPompa.id] },
-    { ritiro: new Date('2026-06-03T09:00Z'), consegna: new Date('2026-06-03T13:00Z'), pickUp: new Date('2026-06-03T09:00Z'), stato: 'RETURNED', totale: 28.0, utenteIdx: 9,  bici: biciScott,      location: locTorino,  assicurazione: assBase,  accessoriIds: [accCasco.id] },
-    { ritiro: new Date('2026-06-03T10:00Z'), consegna: new Date('2026-06-05T10:00Z'), pickUp: new Date('2026-06-03T10:15Z'), stato: 'PICKED_UP',totale: 75.0, utenteIdx: 10, bici: biciCity,       location: locRoma,    assicurazione: assKasko, accessoriIds: [accCasco.id, accBorsa.id, accSeggiolino.id] },
-    { ritiro: new Date('2026-06-03T11:00Z'), consegna: new Date('2026-06-04T11:00Z'), pickUp: new Date('2026-06-03T11:00Z'), stato: 'PICKED_UP',totale: 40.0, utenteIdx: 11, bici: biciGiantE,     location: locFirenze, assicurazione: assMedio, accessoriIds: [accCasco.id] },
-    { ritiro: new Date('2026-06-04T09:00Z'), consegna: new Date('2026-06-04T13:00Z'), pickUp: new Date('2026-06-04T09:00Z'), stato: 'PENDING',  totale: 33.0, utenteIdx: 12, bici: biciTrekE,      location: locMilano,  assicurazione: assBase,  accessoriIds: [accCasco.id, accLucchetto.id] },
-    { ritiro: new Date('2026-06-04T09:00Z'), consegna: new Date('2026-06-04T13:00Z'), pickUp: new Date('2026-06-04T09:00Z'), stato: 'PENDING',  totale: 17.0, utenteIdx: 13, bici: biciCity,       location: locTorino,  assicurazione: assBase,  accessoriIds: [] },
-    { ritiro: new Date('2026-06-04T10:00Z'), consegna: new Date('2026-06-04T18:00Z'), pickUp: new Date('2026-06-04T10:00Z'), stato: 'PENDING',  totale: 50.0, utenteIdx: 14, bici: biciSpecialized,location: locRoma,    assicurazione: assKasko, accessoriIds: [accCasco.id, accBorsa.id] },
-    { ritiro: new Date('2026-06-04T10:00Z'), consegna: new Date('2026-06-05T10:00Z'), pickUp: new Date('2026-06-04T10:05Z'), stato: 'PENDING',  totale: 42.0, utenteIdx: 15, bici: biciScott,      location: locFirenze, assicurazione: assMedio, accessoriIds: [accPompa.id] },
-    { ritiro: new Date('2026-06-04T11:00Z'), consegna: new Date('2026-06-04T15:00Z'), pickUp: new Date('2026-06-04T11:00Z'), stato: 'PICKED_UP',totale: 25.0, utenteIdx: 16, bici: biciBianchi,    location: locMilano,  assicurazione: assBase,  accessoriIds: [accCasco.id] },
-    { ritiro: new Date('2026-06-05T09:00Z'), consegna: new Date('2026-06-05T13:00Z'), pickUp: new Date('2026-06-05T09:00Z'), stato: 'PENDING',  totale: 21.0, utenteIdx: 17, bici: biciCity,       location: locMilano,  assicurazione: assBase,  accessoriIds: [] },
-    { ritiro: new Date('2026-06-05T10:00Z'), consegna: new Date('2026-06-06T10:00Z'), pickUp: new Date('2026-06-05T10:00Z'), stato: 'PENDING',  totale: 66.0, utenteIdx: 18, bici: biciTrekE,      location: locRoma,    assicurazione: assKasko, accessoriIds: [accCasco.id, accBorsa.id, accLucchetto.id] },
-    { ritiro: new Date('2026-06-06T09:00Z'), consegna: new Date('2026-06-06T13:00Z'), pickUp: new Date('2026-06-06T09:00Z'), stato: 'PENDING',  totale: 19.0, utenteIdx: 19, bici: biciGiantE,     location: locTorino,  assicurazione: assBase,  accessoriIds: [] },
+    // ── GIUGNO 2026 ──────────────────────────────────────────────────────────
+    { dataRitiro: new Date('2026-06-01'), oraRitiro: '09:00', dataConsegna: new Date('2026-06-01'), oraConsegna: '13:00', stato: 'RETURNED',  totale: 23.0, utenteIdx: 5,  specifica: spec(bikeBianchi,    'S'), location: locTorino,  assicurazione: assBase,  accessoriIds: [accCasco.id] },
+    { dataRitiro: new Date('2026-06-01'), oraRitiro: '10:00', dataConsegna: new Date('2026-06-02'), oraConsegna: '10:00', stato: 'RETURNED',  totale: 59.0, utenteIdx: 6,  specifica: spec(bikeTrekE,      'M'), location: locRoma,    assicurazione: assKasko, accessoriIds: [accCasco.id, accBorsa.id] },
+    { dataRitiro: new Date('2026-06-02'), oraRitiro: '09:00', dataConsegna: new Date('2026-06-02'), oraConsegna: '13:00', stato: 'RETURNED',  totale: 16.0, utenteIdx: 7,  specifica: spec(bikeCity,       'S'), location: locFirenze, assicurazione: assBase,  accessoriIds: [] },
+    { dataRitiro: new Date('2026-06-02'), oraRitiro: '11:00', dataConsegna: new Date('2026-06-03'), oraConsegna: '11:00', stato: 'RETURNED',  totale: 47.0, utenteIdx: 8,  specifica: spec(bikeSpecialized,'M'), location: locMilano,  assicurazione: assMedio, accessoriIds: [accLucchetto.id, accPompa.id] },
+    { dataRitiro: new Date('2026-06-03'), oraRitiro: '09:00', dataConsegna: new Date('2026-06-03'), oraConsegna: '13:00', stato: 'RETURNED',  totale: 28.0, utenteIdx: 9,  specifica: spec(bikeScott,      'S'), location: locTorino,  assicurazione: assBase,  accessoriIds: [accCasco.id] },
+    { dataRitiro: new Date('2026-06-03'), oraRitiro: '10:00', dataConsegna: new Date('2026-06-05'), oraConsegna: '10:00', stato: 'PICKED_UP', totale: 75.0, utenteIdx: 10, specifica: spec(bikeCity,       'M'), location: locRoma,    assicurazione: assKasko, accessoriIds: [accCasco.id, accBorsa.id, accSeggiolino.id] },
+    { dataRitiro: new Date('2026-06-03'), oraRitiro: '11:00', dataConsegna: new Date('2026-06-04'), oraConsegna: '11:00', stato: 'PICKED_UP', totale: 40.0, utenteIdx: 11, specifica: spec(bikeGiantE,     'M'), location: locFirenze, assicurazione: assMedio, accessoriIds: [accCasco.id] },
+    { dataRitiro: new Date('2026-06-04'), oraRitiro: '09:00', dataConsegna: new Date('2026-06-04'), oraConsegna: '13:00', stato: 'PENDING',   totale: 33.0, utenteIdx: 12, specifica: spec(bikeTrekE,      'S'), location: locMilano,  assicurazione: assBase,  accessoriIds: [accCasco.id, accLucchetto.id] },
+    { dataRitiro: new Date('2026-06-04'), oraRitiro: '09:00', dataConsegna: new Date('2026-06-04'), oraConsegna: '13:00', stato: 'PENDING',   totale: 17.0, utenteIdx: 13, specifica: spec(bikeCity,       'S'), location: locTorino,  assicurazione: assBase,  accessoriIds: [] },
+    { dataRitiro: new Date('2026-06-04'), oraRitiro: '10:00', dataConsegna: new Date('2026-06-04'), oraConsegna: '18:00', stato: 'PENDING',   totale: 50.0, utenteIdx: 14, specifica: spec(bikeSpecialized,'L'), location: locRoma,    assicurazione: assKasko, accessoriIds: [accCasco.id, accBorsa.id] },
+    { dataRitiro: new Date('2026-06-04'), oraRitiro: '10:00', dataConsegna: new Date('2026-06-05'), oraConsegna: '10:00', stato: 'PENDING',   totale: 42.0, utenteIdx: 15, specifica: spec(bikeScott,      'M'), location: locFirenze, assicurazione: assMedio, accessoriIds: [accPompa.id] },
+    { dataRitiro: new Date('2026-06-04'), oraRitiro: '11:00', dataConsegna: new Date('2026-06-04'), oraConsegna: '15:00', stato: 'PICKED_UP', totale: 25.0, utenteIdx: 16, specifica: spec(bikeBianchi,    'M'), location: locMilano,  assicurazione: assBase,  accessoriIds: [accCasco.id] },
+    { dataRitiro: new Date('2026-06-05'), oraRitiro: '09:00', dataConsegna: new Date('2026-06-05'), oraConsegna: '13:00', stato: 'PENDING',   totale: 21.0, utenteIdx: 17, specifica: spec(bikeCity,       'M'), location: locMilano,  assicurazione: assBase,  accessoriIds: [] },
+    { dataRitiro: new Date('2026-06-05'), oraRitiro: '10:00', dataConsegna: new Date('2026-06-06'), oraConsegna: '10:00', stato: 'PENDING',   totale: 66.0, utenteIdx: 18, specifica: spec(bikeTrekE,      'L'), location: locRoma,    assicurazione: assKasko, accessoriIds: [accCasco.id, accBorsa.id, accLucchetto.id] },
+    { dataRitiro: new Date('2026-06-06'), oraRitiro: '09:00', dataConsegna: new Date('2026-06-06'), oraConsegna: '13:00', stato: 'PENDING',   totale: 19.0, utenteIdx: 19, specifica: spec(bikeGiantE,     'L'), location: locTorino,  assicurazione: assBase,  accessoriIds: [] },
   ]
 
   for (const p of prenotazioni) {
-    await prisma.prenotazione.create({
+    const pren = await prisma.prenotazione.create({
       data: {
-        dataRitiro:      p.ritiro,
-        dataOreConsegna: p.consegna,
-        dataPickUp:      p.pickUp,
-        stato:           p.stato,
-        totalePagato:    p.totale,
-        noteProblemi:    p.note,
-        utenteId:        clienti[p.utenteIdx].id,
-        biciclettaId:    p.bici.id,
-        locationId:      p.location.id,
-        coperturaId:     p.assicurazione.id,
-        accessori:       p.accessoriIds.length > 0 ? { connect: p.accessoriIds.map(id => ({ id })) } : undefined,
-      }
+        dataRitiro:   p.dataRitiro,
+        oraRitiro:    p.oraRitiro,
+        dataConsegna: p.dataConsegna,
+        oraConsegna:  p.oraConsegna,
+        stato:        p.stato,
+        totalePagato: p.totale,
+        note:         p.note,
+        utenteId:     clienti[p.utenteIdx].id,
+        biciclettaId: p.specifica.id,
+        locationId:   p.location.id,
+        coperturaId:  p.assicurazione.id,
+      },
     })
+
+    // Accessori via tabella esplicita AccessorioPrenotazione
+    if (p.accessoriIds.length > 0) {
+      await prisma.accessorioPrenotazione.createMany({
+        data: p.accessoriIds.map(accId => ({
+          accessorioId:   accId,
+          prenotazioneId: pren.id,
+        })),
+      })
+    }
   }
 
   console.log(`✅ ${prenotazioni.length} prenotazioni create`)
   console.log('')
   console.log('🏁 Seed completato!')
-  console.log('   Credenziali admin → admin@bikerent.com / admin1234')
-  console.log('   Credenziali clienti → vedi seed, password: changeme123')
+  console.log('   Admin  → admin@bikerent.com / admin1234')
+  console.log('   Clienti → vedi seed, password: changeme123')
 }
 
 main()

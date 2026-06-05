@@ -5,6 +5,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+    schemas  = ["new"]
 }
 
 // ==========================================
@@ -14,6 +15,9 @@ datasource db {
 model Role {
   role  String @id
   users User[]
+
+  @@schema("new")
+
 }
 
 model User {
@@ -27,6 +31,8 @@ model User {
   notifiche     Notifica[]
   prenotazioni  Prenotazione[]
   refreshTokens RefreshToken[]
+  @@schema("new")
+
 }
 
 model RefreshToken {
@@ -36,6 +42,8 @@ model RefreshToken {
   createdAt DateTime @default(now())
   userId    Int
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@schema("new")
+
 }
 
 model Notifica {
@@ -43,135 +51,131 @@ model Notifica {
   messaggio String
   utenteId  Int
   utente    User   @relation(fields: [utenteId], references: [id])
+  @@schema("new")
+
 }
 
-// ==========================================
-// CONFIGURAZIONE NEGOZI (LOCATION) & STOCK
-// ==========================================
-
-model Location {
-  id                  Int               @id @default(autoincrement())
-  nome                String
-  indirizzo           String
-  
-  // Task 1: Listino prezzi base del punto vendita
-  prezzoMezzaGiornata Float             @default(0.0)
-  
-  // Relazioni
-  stocks              StockBicicletta[]
-  prenotazioni        Prenotazione[]
-}
-
-// NUOVO MODELLO: Tabella pivot per lo Stock fisico per ogni negozio
-model StockBicicletta {
-  id             Int        @id @default(autoincrement())
-  quantita       Int        @default(0) // Stock totale posseduto
-  inManutenzione Int        @default(0) // Task 3: Bici bloccate in officina
-  
-  // Relazione con la Location (Negozio)
-  locationId     Int
-  location       Location   @relation(fields: [locationId], references: [id], onDelete: Cascade)
-  
-  // Relazione con la Bicicletta
-  biciclettaId   Int
-  bicicletta     Bicicletta @relation(fields: [biciclettaId], references: [id], onDelete: Cascade)
-
-  @@unique([locationId, biciclettaId]) // Evita duplicati dello stesso modello nello stesso negozio
-}
-
-// ==========================================
-// CATALOGO BICICLETTE e VARIANTI
-// ==========================================
-
-model Bicicletta {
-  id           Int               @id @default(autoincrement())
-  modelloId    Int
-  modello      Modello           @relation(fields: [modelloId], references: [id])
-  
-  tipologie    Tipologia[]       // Relazione molti-a-molti implicita
-  dimensioni   Dimensione[]      // Relazione uno-a-molti con le taglie
-  
-  stocks       StockBicicletta[] // Relazione con gli stock dei negozi
-  prenotazioni Prenotazione[]    // Relazione con lo storico prenotazioni
-}
-
-model Modello {
-  id         Int          @id @default(autoincrement())
-  nome       String
-  biciclette Bicicletta[]
-}
-
-model Tipologia {
-  id         Int          @id @default(autoincrement())
-  nome       String       // Esempi: "Elettrica", "Muscolare", "Mountain Bike"
-  biciclette Bicicletta[] // Relazione molti-a-molti speculare implicita
-}
-
-model Dimensione {
-  id                Int        @id @default(autoincrement())
-  taglia            String     // S, M, L, XL
-  quantitaElettrico Int        @default(0)
-  quantitaMuscolare Int        @default(0)
-  
-  biciclettaId      Int
-  bicicletta        Bicicletta @relation(fields: [biciclettaId], references: [id], onDelete: Cascade)
-}
-
-// ==========================================
-// PRENOTAZIONI E SERVIZI AGGIUNTIVI
-// ==========================================
+//PRENOTAZIONI E TB NORMALIZZAZIONE
 
 enum StatoPrenotazione {
-  PENDING      // In attesa di ritiro
-  PICKED_UP    // Check-in effettuato (Bici ritirata)
-  RETURNED     // Check-in riconsegna effettuato
-  LATE         // Segnalato Ritardo
-  DAMAGED      // Segnalato Danno
-  CANCELLED    // Annullata
-}
+  PENDING // In attesa di ritiro
+  PICKED_UP // Check-in effettuato (Bici ritirata)
+  RETURNED // Check-in riconsegna effettuato
+  LATE // Segnalato Ritardo
+  @@schema("new")
 
-model Prenotazione {
-  id              Int               @id @default(autoincrement())
-  dataRitiro      DateTime
-  dataOreConsegna DateTime
-  dataPickUp      DateTime          // Data effettiva in cui l'utente si presenta
-  
-  // Task 2 & 4: Stato operativo e tracciamento ricavi
-  stato           StatoPrenotazione @default(PENDING)
-  noteProblemi    String?           // Campo per descrivere danni o motivi del ritardo
-  totalePagato    Float             @default(0.0)
-
-  // Relazione Utente
-  utenteId        Int
-  utente          User              @relation(fields: [utenteId], references: [id], onDelete: Cascade)
-
-  // Relazione Bicicletta
-  biciclettaId    Int
-  bicicletta      Bicicletta        @relation(fields: [biciclettaId], references: [id], onDelete: Cascade)
-
-  // Relazione Location (Negozio in cui avviene il noleggio)
-  locationId      Int
-  location        Location          @relation(fields: [locationId], references: [id], onDelete: Cascade)
-
-  // Relazione Assicurazione (Una copertura per prenotazione)
-  coperturaId     Int
-  copertura       Assicurazione     @relation(fields: [coperturaId], references: [id], onDelete: Cascade)
-
-  // Relazione Accessori (Molti-a-molti implicita: una prenotazione può avere più accessori)
-  accessori       Accessorio[]
 }
 
 model Accessorio {
-  id           Int            @id @default(autoincrement())
+  id           Int                      @id @default(autoincrement())
   nome         String
-  prezzo       Float          @default(0.0) // Task 1: Listino prezzi accessori
-  prenotazioni Prenotazione[]
+  prezzo       Float                    @default(0.0) // Task 1: Listino prezzi accessori
+  prenotazioni AccessorioPrenotazione[]
+  @@schema("new")
+
 }
 
 model Assicurazione {
   id           Int            @id @default(autoincrement())
-  tipo         String         // Es: "Kasko", "Base"
+  tipo         String // Es: "Kasko", "Base"
   dettagli     String
-  prezzo       Float          @default(0.0) // Task 1: Listino prezzi assicurazioni
+  prezzo       Decimal          @default(0.0) // Task 1: Listino prezzi assicurazioni
   prenotazioni Prenotazione[]
+  @@schema("new")
+
+}
+
+model Prenotazione {
+  id           Int      @id @default(autoincrement())
+  dataRitiro   DateTime @db.Date
+  oraRitiro    String
+  dataConsegna DateTime
+  oraConsegna  String
+
+  stato        StatoPrenotazione @default(PENDING)
+  note         String? // se si vuole aggiungere qualcosa
+  totalePagato Decimal           @db.Decimal(10, 2)
+
+  // Relazione Utente
+  utenteId Int
+  utente   User @relation(fields: [utenteId], references: [id], onDelete: Cascade)
+
+  // Relazione Bicicletta
+  biciclettaId Int
+  bicicletta   SpecificheBicicletta @relation(fields: [biciclettaId], references: [id], onDelete: Cascade)
+
+  // Relazione Location (Negozio in cui avviene il noleggio)
+  locationId Int
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  // Relazione Assicurazione (Una copertura per prenotazione)
+  coperturaId Int
+  copertura   Assicurazione @relation(fields: [coperturaId], references: [id], onDelete: Cascade)
+
+  // Relazione Accessori (Molti-a-molti implicita: una prenotazione può avere più accessori)
+  prenotazioni AccessorioPrenotazione[]
+  @@schema("new")
+
+}
+
+model AccessorioPrenotazione {
+  id             Int          @id @default(autoincrement())
+  accessorioId   Int
+  prenotazioneId Int
+  accessorio     Accessorio   @relation(fields: [accessorioId], references: [id], onDelete: Cascade)
+  prenotazione   Prenotazione @relation(fields: [prenotazioneId], references: [id], onDelete: Cascade)
+  @@schema("new")
+
+}
+
+//LOCATION
+model Location {
+  id        Int    @id @default(autoincrement())
+  nome      String
+  indirizzo String
+
+  biciclette   BiciclettaLocation[] // Relazione molti-a-molti con le biciclette tramite tabella di join
+  prenotazioni Prenotazione[]
+  @@schema("new")
+
+}
+
+model BiciclettaLocation {
+  id           Int      @id @default(autoincrement())
+  locationId   Int
+  biciclettaSpecificId Int
+  numberE       Int      @default(1) 
+  numberM       Int      @default(1) // Quantità di questa specifica bicicletta in questa location
+  // Quantità di questa specifica bicicletta in questa location
+  location     Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  biciclettaSpecific   SpecificheBicicletta @relation(fields: [biciclettaSpecificId], references: [id], onDelete: Cascade)
+  //bicilette 
+  @@unique([locationId, biciclettaSpecificId])
+  @@schema("new")
+
+}
+
+// BICICLETTE E SPECIFICHE
+
+//qui non si mette il totale delle bici, quello va affidato a BiciclettaLocation.
+model Bicicletta {
+  id        Int        @id @default(autoincrement())
+  type      String
+  specifics SpecificheBicicletta[]
+
+  // Relazione molti-a-molti con le location tramite tabella di join
+  @@schema("new")
+
+}
+
+model SpecificheBicicletta {
+  id           Int            @id @default(autoincrement())
+  size        String
+  price        Decimal        @db.Decimal(10, 2)
+  biciclettaId    Int
+  bicicletta      Bicicletta        @relation(fields: [biciclettaId], references: [id])
+  prenotazione Prenotazione[]
+  location BiciclettaLocation[]
+  @@schema("new")
+
 }
