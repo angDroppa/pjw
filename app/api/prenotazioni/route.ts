@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { requireAuth } from '@/lib/auth-helper'
 import { CreatePrenotazioneSchema } from '@/lib/zodSchemas/prenotazione'
+import { calcolaPrezzoBici } from '@/lib/pricing'
 
 export async function GET(req: Request) {
   const user = await requireAuth(req)
@@ -37,6 +38,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
+  // Validazione date
+  const pickup = new Date(parsed.data.dataRitiro)
+  const ret = new Date(parsed.data.dataConsegna)
+  const [rh, rm] = parsed.data.oraRitiro.split(':').map(Number)
+  const [ch, cm] = parsed.data.oraConsegna.split(':').map(Number)
+  pickup.setHours(rh, rm, 0, 0)
+  ret.setHours(ch, cm, 0, 0)
+
+  if (pickup < new Date()) {
+    return NextResponse.json({ error: 'La data di ritiro non può essere nel passato' }, { status: 400 })
+  }
+
+  if (ret <= pickup) {
+    return NextResponse.json({ error: 'La riconsegna deve avvenire dopo il ritiro' }, { status: 400 })
+  }
+
   // Verifica che la bicicletta esista
   const specifica = await prisma.specificheBicicletta.findUnique({
     where: { id: parsed.data.biciclettaId },
@@ -65,7 +82,14 @@ export async function POST(req: Request) {
   const accessoriList = parsed.data.accessoriIds.length > 0
     ? await prisma.accessorio.findMany({ where: { id: { in: parsed.data.accessoriIds } } })
     : []
-  const prezzoBici = Number(specifica.prezzoGiornata)
+  const prezzoBici = calcolaPrezzoBici(
+    Number(specifica.prezzoGiornata),
+    Number(specifica.prezzoMezzaGiornata),
+    parsed.data.dataRitiro,
+    parsed.data.oraRitiro,
+    parsed.data.dataConsegna,
+    parsed.data.oraConsegna
+  ).prezzo
   const prezzoAssicurazione = assicurazione ? Number(assicurazione.prezzo) : 0
   const prezzoAccessori = accessoriList.reduce((sum, a) => sum + a.prezzo, 0)
   const totale = prezzoBici + prezzoAssicurazione + prezzoAccessori

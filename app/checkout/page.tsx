@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/lib/store/auth.store";
 import api from "@/lib/axios";
+import { calcolaPrezzoBici } from "@/lib/pricing";
 
 interface PrenotazioneConfig {
   prodotto: { id: number; nome: string; tipologia: string };
@@ -80,11 +81,34 @@ export default function CheckoutPage() {
     );
   }
 
-  const prezzoBici = Number(config.biciclettaSpecific.prezzoGiornata);
   const prezzoAccessori = config.accessori.reduce((sum, a) => sum + Number(a.prezzo ?? 0), 0);
   const assicurazioneScelta = assicurazioni.find(a => a.id === selectedAssicurazione);
   const prezzoAssicurazione = Number(assicurazioneScelta?.prezzo ?? 0);
+
+  const priceCalc = dataRitiro && dataConsegna
+    ? calcolaPrezzoBici(
+        Number(config.biciclettaSpecific.prezzoGiornata),
+        Number(config.biciclettaSpecific.prezzoMezzaGiornata),
+        new Date(dataRitiro),
+        oraRitiro,
+        new Date(dataConsegna),
+        oraConsegna
+      )
+    : { prezzo: 0, label: "" }
+  const prezzoBici = priceCalc.prezzo
+  const durataLabel = priceCalc.label
   const totale = prezzoBici + prezzoAccessori + prezzoAssicurazione;
+
+  const erroreData = dataRitiro && dataConsegna
+    ? (() => {
+        const pickup = new Date(`${dataRitiro}T${oraRitiro}:00`)
+        const ret = new Date(`${dataConsegna}T${oraConsegna}:00`)
+        const now = new Date()
+        if (pickup < now) return "La data di ritiro non può essere nel passato"
+        if (ret <= pickup) return "La riconsegna deve avvenire dopo il ritiro"
+        return ""
+      })()
+    : ""
 
   // Genera fasce orarie 9:00-18:00 slot 1h
   const fasceOrarie = Array.from({ length: 10 }, (_, i) => {
@@ -235,8 +259,12 @@ export default function CheckoutPage() {
           </div>
         </div>
 
+        {erroreData && (
+          <p className="text-red-400 text-sm mb-4">{erroreData}</p>
+        )}
+
         <div className="space-y-1 text-sm text-slate-400">
-          <p className="flex justify-between"><span>Bicicletta (1 giorno)</span><span>€{prezzoBici.toFixed(2)}</span></p>
+          <p className="flex justify-between"><span>Bicicletta ({durataLabel})</span><span>€{prezzoBici.toFixed(2)}</span></p>
           {prezzoAccessori > 0 && (
             <p className="flex justify-between"><span>Accessori</span><span>€{prezzoAccessori.toFixed(2)}</span></p>
           )}
@@ -260,7 +288,7 @@ export default function CheckoutPage() {
 
           <button
             onClick={handleConferma}
-            disabled={!selectedAssicurazione || !dataRitiro || !dataConsegna || submitting}
+            disabled={!selectedAssicurazione || !dataRitiro || !dataConsegna || submitting || !!erroreData}
             className="w-1/2 bg-emerald-500 text-black font-bold p-3 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Conferma
