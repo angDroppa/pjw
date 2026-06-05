@@ -5,7 +5,7 @@ import { CreateLocationSchema, UpdateLocationSchema } from '@/lib/zodSchemas/loc
 import { CreateAccessorioSchema } from '@/lib/zodSchemas/accessorio'
 import { UpdateAccessorioSchema } from '@/lib/zodSchemas/accessorio'
 import { CreateAssicurazioneSchema, UpdateAssicurazioneSchema } from '@/lib/zodSchemas/assicurazione'
-import { CreateBiciclettaSchema, CreateSpecificheSchema } from '@/lib/zodSchemas/bicicletta'
+import { CreateBiciclettaSchema, CreateSpecificheSchema, UpdateSpecificheSchema } from '@/lib/zodSchemas/bicicletta'
 import { CreateBiciclettaLocationSchema, UpdateBiciclettaLocationSchema } from '@/lib/zodSchemas/biciclettaLocation'
 import { UpdateStatoSchema } from '@/lib/zodSchemas/prenotazione'
 import { Prisma } from '@/app/generated/prisma/client'
@@ -41,8 +41,8 @@ export async function GET(req: Request) {
 
     // ── PRENOTAZIONI ──────────────────────────────────────────────────────────
     if (action === 'prenotazioni') {
-      const utente     = searchParams.get('utente')
-      const data       = searchParams.get('data')
+      const utente = searchParams.get('utente')
+      const data = searchParams.get('data')
       const locationId = searchParams.get('locationId')
 
       const where: Prisma.PrenotazioneWhereInput = {}
@@ -51,14 +51,14 @@ export async function GET(req: Request) {
         where.utente = {
           OR: [
             { firstName: { contains: utente, mode: 'insensitive' } },
-            { lastName:  { contains: utente, mode: 'insensitive' } },
+            { lastName: { contains: utente, mode: 'insensitive' } },
           ]
         }
       }
       if (data) {
         const d = new Date(data)
         where.dataRitiro = {
-          gte: new Date(new Date(d).setHours(0,  0,  0,   0)),
+          gte: new Date(new Date(d).setHours(0, 0, 0, 0)),
           lte: new Date(new Date(d).setHours(23, 59, 59, 999)),
         }
       }
@@ -67,9 +67,9 @@ export async function GET(req: Request) {
       const prenotazioni = await prisma.prenotazione.findMany({
         where,
         include: {
-          utente:    { select: { firstName: true, lastName: true, email: true } },
+          utente: { select: { firstName: true, lastName: true, email: true } },
           bicicletta: { include: { bicicletta: true } },
-          location:  true,
+          location: true,
           copertura: true,
           prenotazioni: { include: { accessorio: true } },
         },
@@ -104,7 +104,7 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: 'Accesso negato' }, { status: 403 })
 
       const da = searchParams.get('da')
-      const a  = searchParams.get('a')
+      const a = searchParams.get('a')
       const periodoClause = da && a
         ? { dataRitiro: { gte: new Date(da), lte: new Date(a) } }
         : {}
@@ -116,47 +116,47 @@ export async function GET(req: Request) {
 
       const aggregati = await prisma.prenotazione.aggregate({
         _count: { id: true },
-        _sum:   { totalePagato: true },
-        where:  baseWhere,
+        _sum: { totalePagato: true },
+        where: baseWhere,
       })
 
       const performanceRaw = await prisma.prenotazione.groupBy({
-        by:      ['locationId'],
-        _sum:    { totalePagato: true },
-        where:   baseWhere,
+        by: ['locationId'],
+        _sum: { totalePagato: true },
+        where: baseWhere,
       })
 
       const infoNegozi = await prisma.location.findMany({
-        where:  { id: { in: performanceRaw.map(p => p.locationId) } },
+        where: { id: { in: performanceRaw.map(p => p.locationId) } },
         select: { id: true, nome: true },
       })
 
       const shopPerformance = performanceRaw.map(p => ({
-        name:    infoNegozi.find(n => n.id === p.locationId)?.nome ?? `Negozio #${p.locationId}`,
+        name: infoNegozi.find(n => n.id === p.locationId)?.nome ?? `Negozio #${p.locationId}`,
         revenue: Number(p._sum.totalePagato ?? 0),
       }))
 
       const biciRaw = await prisma.prenotazione.groupBy({
-        by:      ['biciclettaId'],
-        _count:  { id: true },
+        by: ['biciclettaId'],
+        _count: { id: true },
         orderBy: { _count: { id: 'desc' } },
-        take:    5,
-        where:   baseWhere,
+        take: 5,
+        where: baseWhere,
       })
 
       const infoBici = await prisma.specificheBicicletta.findMany({
-        where:   { id: { in: biciRaw.map(b => b.biciclettaId) } },
+        where: { id: { in: biciRaw.map(b => b.biciclettaId) } },
         include: { bicicletta: true },
       })
 
       const mostUsedBikes = biciRaw.map(b => ({
-        model:   infoBici.find(i => i.id === b.biciclettaId)?.bicicletta.nome ?? `Bici #${b.biciclettaId}`,
+        model: infoBici.find(i => i.id === b.biciclettaId)?.bicicletta.nome ?? `Bici #${b.biciclettaId}`,
         rentals: b._count.id,
       }))
 
       return NextResponse.json({
-        totalBookings:  aggregati._count.id,
-        totalRevenue:   Number(aggregati._sum.totalePagato ?? 0),
+        totalBookings: aggregati._count.id,
+        totalRevenue: Number(aggregati._sum.totalePagato ?? 0),
         shopPerformance,
         mostUsedBikes,
         periodoFiltrato: da && a ? { da, a } : null,
@@ -203,7 +203,7 @@ export async function POST(req: Request) {
       if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
       const updated = await prisma.location.update({
         where: { id: parseInt(locationId) },
-        data:  parsed.data,
+        data: parsed.data,
       })
       return NextResponse.json(updated)
     }
@@ -233,7 +233,7 @@ export async function POST(req: Request) {
       if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
       const updated = await prisma.accessorio.update({
         where: { id: parseInt(accessorioId) },
-        data:  parsed.data,
+        data: parsed.data,
       })
       return NextResponse.json(updated)
     }
@@ -263,7 +263,7 @@ export async function POST(req: Request) {
       if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
       const updated = await prisma.assicurazione.update({
         where: { id: parseInt(assicurazioneId) },
-        data:  parsed.data,
+        data: parsed.data,
       })
       return NextResponse.json(updated)
     }
@@ -282,7 +282,7 @@ export async function POST(req: Request) {
       const parsed = CreateBiciclettaSchema.safeParse(body)
       if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
       const bici = await prisma.bicicletta.create({
-        data:    parsed.data,
+        data: parsed.data,
         include: { specifics: true },
       })
       return NextResponse.json(bici)
@@ -312,6 +312,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true })
     }
 
+    if (action === 'update_specifica') {
+      if (!isAdmin) return denyAdmin()
+      const { specificaId, ...rest } = body
+      if (!specificaId) return NextResponse.json({ error: 'specificaId obbligatorio' }, { status: 400 })
+      const parsed = UpdateSpecificheSchema.safeParse(rest)
+      if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
+      const updated = await prisma.specificheBicicletta.update({
+        where: { id: parseInt(specificaId) },
+        data: parsed.data,
+      })
+      return NextResponse.json(updated)
+    }
+
     // ── STOCK (BiciclettaLocation) ────────────────────────────────────────────
     if (action === 'aggiungi_bici_negozio') {
       if (!isAdmin) return denyAdmin()
@@ -322,13 +335,13 @@ export async function POST(req: Request) {
         prisma.specificheBicicletta.findUnique({ where: { id: parsed.data.biciclettaSpecificId } }),
         prisma.location.findUnique({ where: { id: parsed.data.locationId } }),
       ])
-      if (!bici)    return NextResponse.json({ error: 'Specifica bici non trovata' }, { status: 404 })
+      if (!bici) return NextResponse.json({ error: 'Specifica bici non trovata' }, { status: 404 })
       if (!negozio) return NextResponse.json({ error: 'Negozio non trovato' }, { status: 404 })
 
       const stock = await prisma.biciclettaLocation.upsert({
         where: {
           locationId_biciclettaSpecificId: {
-            locationId:          parsed.data.locationId,
+            locationId: parsed.data.locationId,
             biciclettaSpecificId: parsed.data.biciclettaSpecificId,
           }
         },
@@ -352,7 +365,7 @@ export async function POST(req: Request) {
       if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
       const updated = await prisma.biciclettaLocation.update({
         where: { id: parseInt(biciclettaLocationId) },
-        data:  parsed.data,
+        data: parsed.data,
       })
       return NextResponse.json(updated)
     }

@@ -1,6 +1,6 @@
 import { Accessorio, CreateAccessorio, UpdateAccessorio } from '../zodSchemas/accessorio'
 import { Assicurazione, CreateAssicurazione, UpdateAssicurazione } from '../zodSchemas/assicurazione'
-import { BiciclettaCatalog, CreateBicicletta, CreateSpecifiche } from '../zodSchemas/bicicletta'
+import { BiciclettaCatalog, CreateBicicletta, CreateSpecifiche, UpdateSpecifiche } from '../zodSchemas/bicicletta'
 import { BiciclettaLocationWithDetails, CreateBiciclettaLocation, UpdateBiciclettaLocation } from '../zodSchemas/biciclettaLocation'
 import { CreateLocation, UpdateLocation, Location } from '../zodSchemas/location'
 import { Prenotazione, StatoPrenotazione, UpdateStato } from '../zodSchemas/prenotazione'
@@ -8,13 +8,13 @@ import api from './index'
 
 const BACKOFFICE = '/backoffice'
 
-interface ConfigResponse {
+export interface ConfigResponse {
   negozi:        Location[]
   accessori:     Accessorio[]
   assicurazioni: Assicurazione[]
 }
 
-interface CatalogoResponse {
+export interface CatalogoResponse {
   biciclette: BiciclettaCatalog[]
   negozi:     { id: number; nome: string }[]
 }
@@ -158,6 +158,10 @@ export const backofficeApi = {
     })
     return res.data
   },
+
+  updateSpecifica: async (specificaId: number, data: UpdateSpecifiche): Promise<void> => {
+  await api.post(BACKOFFICE, { action: 'update_specifica', specificaId, ...data })
+},
 
   createSpecifica: async (data: CreateSpecifiche): Promise<void> => {
     await api.post(BACKOFFICE, { action: 'create_specifica', ...data })

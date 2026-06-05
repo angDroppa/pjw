@@ -39,7 +39,7 @@ export const CreateBiciclettaSchema = z.object({
   tipologia: TipologiaBiciclettaSchema,
 })
 
-export const CreateSpecificheSchema = z.object({
+const CreateSpecificheBase = z.object({
   biciclettaId: z.number(),
   size: z.string().min(1),
   alimentazione: AlimentazioneSchema,
@@ -49,7 +49,14 @@ export const CreateSpecificheSchema = z.object({
   altezzaMax: z.number().int().optional(),
 })
 
-export const UpdateSpecificheSchema = CreateSpecificheSchema.omit({ biciclettaId: true }).partial()
+export const CreateSpecificheSchema = CreateSpecificheBase.refine(
+  data => data.prezzoGiornata >= data.prezzoMezzaGiornata,
+  { message: 'Il prezzo giornata non può essere minore del prezzo mezza giornata', path: ['prezzoGiornata'] }
+)
+
+export const UpdateSpecificheSchema = CreateSpecificheBase
+  .omit({ biciclettaId: true })
+  .partial()
 
 export type TipologiaBicicletta = z.infer<typeof TipologiaBiciclettaSchema>
 export type Alimentazione = z.infer<typeof AlimentazioneSchema>
