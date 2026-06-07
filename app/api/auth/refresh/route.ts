@@ -11,6 +11,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Refresh token mancante" }, { status: 401 });
   }
 
+  console.log(refreshToken);
+
   const payload = await verifyRefreshToken(refreshToken);
   if (!payload) {
     return NextResponse.json({ error: "Refresh token non valido" }, { status: 401 });

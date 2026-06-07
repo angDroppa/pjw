@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
       lastName,
       email,
       password: hashed,
+      roleName: "CUSTOMER",
     },
   });
 

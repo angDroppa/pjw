@@ -41,7 +41,11 @@ api.interceptors.response.use(
     }
 
     //qui in caso di errore si seleziona il messaggio di errore preimpostato da mostrare all'utente tramite il toaster
-    const message = error.response?.data?.error
+    const message =
+      typeof error.response?.data?.error === "string"
+        ? error.response.data.error
+        : undefined
+
     toast.error(message ?? getErrorMessage(status))
     return Promise.reject(error)
   }
@@ -61,8 +65,8 @@ const getErrorMessage = (status?: number): string => {
 
 export default api
 
-// window.location.href → distrugge tutto il contesto della pagina, il browser libera tutta la memoria inclusa la promise pendente — 
+// window.location.href → distrugge tutto il contesto della pagina, il browser libera tutta la memoria inclusa la promise pendente —
 // è una pulizia forzata dall't esterno
 
-// catch → la promise finisce il suo ciclo naturale resolved/rejected → catturata → nessun riferimento → GC la pulisce — 
+// catch → la promise finisce il suo ciclo naturale resolved/rejected → catturata → nessun riferimento → GC la pulisce —
 // è una pulizia organica dall'interno

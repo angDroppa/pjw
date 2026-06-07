@@ -17,7 +17,7 @@ export default async function Navbar({ user }: NavbarProps) {
   // se user è null non mostrare la navbar
   //commentare e decommentare a seconda dei caso d'uso
   //se si vuole solo se autenticati decommentare
-  if (!user) return null
+  // if (!user) return null
 
   const headersList = await headers();
   const pathname = headersList.get("x-pathname") ?? "";
@@ -27,12 +27,13 @@ export default async function Navbar({ user }: NavbarProps) {
 
   return (
     <div className="w-full">
-      <div className="fixed top-0 left-0 w-full z-50 bg-base-200">
+      <div className="fixed top-0 left-0 w-full z-50 bg-base-200 px-20">
         <div className="h-16 flex items-center justify-between px-4">
           <div className="flex-1">
             <Link href="/" className="text-xl font-bold">
-              MyApp
+              BikeStore
             </Link>
+            
           </div>
           <div className="ml-auto">
             {user ? (

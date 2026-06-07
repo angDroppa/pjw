@@ -14,4 +14,12 @@ export const UserResponseSchema = z.object({
     }),
 })
 
+export const UserResponseSchemaFlat = z.object({
+  id: z.number(),
+  firstName: z.string(),
+  lastName: z.string(),
+  email: z.string(),
+  roleName: z.string(),
+})
+
 export type UserResponse = z.infer<typeof UserResponseSchema>

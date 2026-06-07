@@ -12,7 +12,7 @@ extendZodWithOpenApi(z);
 // della request che lato client per tipizzare i form.
 // .openapi() aggiunge esempi visibili nella documentazione Swagger.
 export const LoginSchema = z.object({
-  email: z.email().openapi({ example: "mario@example.com" }),
+  email: z.email().trim().openapi({ example: "mario.rossi@gmail.com" }),
   password: z.string()
     .min(8)
     .regex(/[A-Z]/, "Deve contenere almeno una lettera maiuscola")
@@ -25,8 +25,8 @@ export const LoginSchema = z.object({
 
 // Stessa cosa per il register
 export const RegisterSchema = z.object({
-  firstName: z.string().min(1).openapi({ example: "Mario" }),
-  lastName: z.string().min(1).openapi({ example: "Rossi" }),
+  firstName: z.string().trim().min(1).openapi({ example: "Mario" }),
+  lastName: z.string().trim().min(1).openapi({ example: "Rossi" }),
   email: z.email().openapi({ example: "mario@example.com" }),
   password: z.string()
     .min(8)

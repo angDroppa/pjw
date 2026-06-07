@@ -22,7 +22,7 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginInput) => {
     try {
       await authApi.login(data);
-      router.push("/dashboard");
+      router.push("/");
       router.refresh();
     } catch {
       // aspetta che il toast sia visibile prima di fare altro

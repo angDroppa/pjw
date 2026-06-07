@@ -3,6 +3,8 @@ import { z } from "zod";
 import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
 import { LoginSchema, RegisterSchema } from "./validators/auth";
 import { UserResponseSchema } from "./validators/user";
+import { PrenotazioneInputSchema } from "./validators/prenotazione";
+import { BiciclettaResponseSchema } from "./validators/bicicletta";
 
 // Estende Zod con il metodo .openapi() per aggiungere metadati agli schema
 // come esempi e descrizioni visibili nella documentazione Swagger.
@@ -98,6 +100,48 @@ registry.registerPath({
         },
       },
     },
+    401: { description: "Non autorizzato" },
+  },
+});
+
+// ==========================================
+// BICICLETTE
+// ==========================================
+
+registry.registerPath({
+  method: "get",
+  path: "/api/bicicletta",
+  tags: ["Biciclette"],
+  summary: "Lista biciclette",
+  responses: {
+    200: {
+      description: "Lista biciclette con specifiche",
+      content: {
+        "application/json": {
+          schema: z.object({ biciclette: z.array(BiciclettaResponseSchema) }),
+        },
+      },
+    },
+  },
+});
+
+// ==========================================
+// PRENOTAZIONI
+// ==========================================
+
+registry.registerPath({
+  method: "post",
+  path: "/api/prenotazione",
+  tags: ["Prenotazioni"],
+  summary: "Crea prenotazione",
+  request: {
+    body: {
+      content: { "application/json": { schema: PrenotazioneInputSchema } },
+    },
+  },
+  responses: {
+    201: { description: "Prenotazione creata" },
+    400: { description: "Dati non validi" },
     401: { description: "Non autorizzato" },
   },
 });
