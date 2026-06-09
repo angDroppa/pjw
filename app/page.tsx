@@ -20,13 +20,13 @@ export default function Home() {
   });
 
   return (
-    <main className="min-h-screen bg-slate-900 text-slate-100 py-12 px-4 sm:px-6 lg:px-8 relative">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent sm:text-5xl">
-            Scegli la tua Bicicletta
+    <main className="app-shell py-12 px-4 sm:px-6 lg:px-8 relative">
+      <div className="app-container">
+        <div className="app-page-header">
+          <h1 className="app-title">
+            Scegli la tua <span className="app-title-accent">Bicicletta</span>
           </h1>
-          <p className="mt-4 text-xl text-slate-400">
+          <p className="app-subtitle">
             Seleziona il mezzo perfetto per te e configuralo nella schermata di
             prenotazione.
           </p>

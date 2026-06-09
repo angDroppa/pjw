@@ -36,9 +36,9 @@ function calcolaPrezzo(
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between text-sm py-1.5 border-b border-slate-800">
-      <span className="text-slate-400">{label}</span>
-      <span className="text-white font-medium">{value}</span>
+    <div className="app-summary-row">
+      <span className="app-text-muted">{label}</span>
+      <span className="font-medium">{value}</span>
     </div>
   );
 }
@@ -139,11 +139,11 @@ export default function StepRiepilogo({ product, onPrev, onClose }: Props) {
 
   return (
     <div className="flex flex-col gap-5">
-      <p className="text-slate-400 text-sm">
+      <p className="app-text-muted text-sm">
         Controlla i dettagli prima di aggiungere al carrello.
       </p>
 
-      <div className="bg-slate-800/50 rounded-xl p-4 flex flex-col gap-0.5 border border-slate-700/50">
+      <div className="app-summary flex flex-col gap-0.5">
         <Row label="Bicicletta" value={product.nome} />
         <Row label="Taglia" value={selectedSize} />
         <Row
@@ -169,20 +169,18 @@ export default function StepRiepilogo({ product, onPrev, onClose }: Props) {
       </div>
 
       {accSelezionati.length > 0 && (
-        <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-            Accessori
-          </p>
+        <div className="app-summary">
+          <p className="app-label mb-2">Accessori</p>
           {accSelezionati.map((a) => (
             <div key={a.id} className="flex justify-between text-sm py-1">
-              <span className="text-slate-300">{a.nome}</span>
-              <span className="text-slate-400">€{a.prezzo.toFixed(2)}</span>
+              <span>{a.nome}</span>
+              <span className="app-text-muted">€{a.prezzo.toFixed(2)}</span>
             </div>
           ))}
         </div>
       )}
 
-      <div className="space-y-1 text-sm text-slate-400 px-1">
+      <div className="space-y-1 text-sm app-text-muted px-1">
         <div className="flex justify-between">
           <span>
             {mezzaGiornata
@@ -205,25 +203,17 @@ export default function StepRiepilogo({ product, onPrev, onClose }: Props) {
               : `€${Number(copertura.prezzo).toFixed(2)}`}
           </span>
         </div>
-        <div className="flex justify-between font-extrabold text-emerald-400 text-lg pt-2 border-t border-slate-800">
+        <div className="flex justify-between font-extrabold app-text-accent text-lg pt-2 border-t-2 border-base-300">
           <span>Totale</span>
           <span>€{totale.toFixed(2)}</span>
         </div>
       </div>
 
       <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={onPrev}
-          className="flex-1 py-3 rounded-xl border border-slate-700 text-slate-300 font-semibold text-sm hover:border-slate-500 transition"
-        >
+        <button type="button" onClick={onPrev} className="app-btn-ghost flex-1">
           ← Indietro
         </button>
-        <button
-          type="button"
-          onClick={handleAggiungiAlCarrello}
-          className="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-500 text-slate-900 font-bold text-sm transition hover:opacity-90 shadow-lg shadow-emerald-500/20"
-        >
+        <button type="button" onClick={handleAggiungiAlCarrello} className="app-btn-primary flex-1">
           🛒 Aggiungi al carrello
         </button>
       </div>

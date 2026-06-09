@@ -35,7 +35,7 @@ export default function ProductDetailPage() {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-slate-900 flex items-center justify-center text-slate-400">
+      <main className="app-shell flex items-center justify-center app-text-muted">
         Caricamento...
       </main>
     );
@@ -43,7 +43,7 @@ export default function ProductDetailPage() {
 
   if (isError || !product) {
     return (
-      <main className="min-h-screen bg-slate-900 flex items-center justify-center text-slate-400">
+      <main className="app-shell flex items-center justify-center app-text-muted">
         Bicicletta non trovata
       </main>
     );
@@ -60,27 +60,27 @@ export default function ProductDetailPage() {
   const taglie = [...new Set(product.specifics.map((s) => s.size))];
 
   return (
-    <main className="h-[90.5vh] bg-slate-900 text-slate-100 py-2 px-4 sm:px-6 lg:px-8">
+    <main className="h-[90.5vh] app-shell py-2 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         <div className="w-full flex flex-row justify-between">
           {/* HEADER */}
           <div className="mb-10">
-            <p className="text-emerald-400 uppercase tracking-widest text-sm">
+            <p className="configurator-kicker">
               {tipologiaLabel[product.tipologia] ?? product.tipologia}
             </p>
 
-            <h1 className="text-5xl font-extrabold">{product.nome}</h1>
+            <h1 className="app-title text-5xl">{product.nome}</h1>
           </div>
 
           {/* PREZZI */}
           <div className="mb-10">
             <h2 className="text-xl font-semibold mb-2">Prezzi</h2>
 
-            <p className="text-emerald-400 text-2xl font-bold">
+            <p className="app-text-accent text-2xl font-bold">
               da €{prezzoMinGiorno.toFixed(2)} / giorno
             </p>
 
-            <p className="text-slate-400">
+            <p className="app-text-muted">
               da €{prezzoMinMezza.toFixed(2)} / mezza giornata
             </p>
           </div>
@@ -94,7 +94,7 @@ export default function ProductDetailPage() {
             {taglie.map((t) => (
               <span
                 key={t}
-                className="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700"
+                className="app-tag"
               >
                 {t}
               </span>
@@ -103,9 +103,9 @@ export default function ProductDetailPage() {
         </div>
 
         {/* TABELLA SPECIFICHE */}
-        <div className="mb-10 overflow-hidden rounded-2xl border border-slate-700">
+        <div className="mb-10 overflow-hidden app-surface">
           <table className="w-full text-sm">
-            <thead className="bg-slate-800">
+            <thead className="bg-base-200">
               <tr>
                 <th className="p-3 text-left">Taglia</th>
                 <th className="p-3 text-left">Altezza</th>
@@ -116,7 +116,7 @@ export default function ProductDetailPage() {
 
             <tbody>
               {product.specifics.map((s) => (
-                <tr key={s.id} className="border-t border-slate-700">
+                <tr key={s.id} className="border-t-2 border-base-300">
                   <td className="p-3">{s.size}</td>
 
                   <td className="p-3">
@@ -137,7 +137,7 @@ export default function ProductDetailPage() {
         {/* CTA */}
         <button
           onClick={() => setShowConfigurator(true)}
-          className="px-8 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 font-bold"
+          className="app-btn-primary px-8 py-4"
         >
           Configura e Prenota
         </button>

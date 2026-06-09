@@ -54,22 +54,19 @@ export default function ProductConfigurator({ product, onClose }: Props) {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animated fadeIn">
+    <div className="configurator-overlay animated fadeIn">
       <div className="absolute inset-0" onClick={onClose} />
 
-      <div className="relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl z-10 overflow-hidden">
-        <div className="flex justify-between items-start px-6 pt-6 pb-4 border-b border-slate-800">
+      <div className="configurator-panel">
+        <div className="configurator-header">
           <div>
-            <span className="text-xs text-emerald-400 font-bold uppercase tracking-wider">Configurazione</span>
-            <h3 className="text-xl font-extrabold text-white leading-tight">{product.nome}</h3>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <span className="configurator-kicker">Configurazione</span>
+            <h3 className="text-xl font-extrabold leading-tight mt-1">{product.nome}</h3>
+            <p className="text-xs app-text-muted mt-0.5">
               {tipologiaLabel[product.tipologia] ?? product.tipologia}
             </p>
           </div>
-          <button
-            onClick={onClose}
-            className="text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition shrink-0"
-          >✕</button>
+          <button onClick={onClose} className="configurator-close">✕</button>
         </div>
 
         <div className="px-6 pt-5">

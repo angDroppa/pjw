@@ -22,10 +22,10 @@ const statoLabel: Record<StatoPrenotazione, string> = {
 };
 
 const statColor: Record<StatoPrenotazione, string> = {
-  PENDING: "bg-yellow-500/20 text-yellow-400",
-  PICKED_UP: "bg-blue-500/20 text-blue-400",
-  RETURNED: "bg-emerald-500/20 text-emerald-400",
-  LATE: "bg-red-500/20 text-red-400",
+  PENDING: "badge-pending",
+  PICKED_UP: "badge-picked-up",
+  RETURNED: "badge-returned",
+  LATE: "badge-late",
 };
 
 const alimentazioneLabel: Record<
@@ -100,24 +100,24 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-6">
+    <div className="app-shell p-6">
       <div className="max-w-4xl mx-auto">
         {loading ? (
-          <p className="text-slate-500">Caricamento...</p>
+          <p className="app-text-muted">Caricamento...</p>
         ) : (
           <>
-            <h1 className="text-3xl font-bold mb-2">Ciao, {nomeUtente}!</h1>
-            <p className="text-slate-400 mb-8">Gestisci le tue prenotazioni.</p>
+            <h1 className="app-title text-3xl mb-2">Ciao, {nomeUtente}!</h1>
+            <p className="app-text-muted mb-8">Gestisci le tue prenotazioni.</p>
 
             {prenotazioni.length === 0 ? (
               <div className="text-center py-16">
                 <p className="text-5xl mb-4">🚲</p>
-                <p className="text-slate-400 mb-4">
+                <p className="app-text-muted mb-4">
                   Nessuna prenotazione trovata.
                 </p>
                 <button
                   onClick={() => router.push("/")}
-                  className="bg-emerald-500 text-black font-bold px-6 py-3 rounded-lg"
+                  className="app-btn-primary"
                 >
                   Sfoglia il catalogo
                 </button>
@@ -137,7 +137,7 @@ export default function DashboardPage() {
                     return (
                       <div
                         key={p.id}
-                        className="bg-slate-900 border border-slate-800 rounded-xl p-5"
+                        className="app-surface p-5"
                       >
                         <div className="flex justify-between items-start">
                           <div>
@@ -145,12 +145,12 @@ export default function DashboardPage() {
                               Taglia {p.bicicletta.size} —{" "}
                               {alimentazioneLabel[p.alimentazione]}
                             </h3>
-                            <p className="text-sm text-slate-400">
+                            <p className="text-sm app-text-muted">
                               {p.location.nome}
                             </p>
                           </div>
                           <span
-                            className={`px-3 py-1 rounded-full text-xs font-bold ${statColor[p.stato]}`}
+                            className={`px-3 py-1 text-xs font-bold uppercase tracking-wide border-2 border-base-content ${statColor[p.stato]}`}
                           >
                             {statoLabel[p.stato]}
                           </span>
@@ -158,34 +158,34 @@ export default function DashboardPage() {
 
                         <div className="grid grid-cols-2 gap-3 mt-4 text-sm">
                           <div>
-                            <span className="text-slate-500">Ritiro:</span>
+                            <span className="app-text-muted">Ritiro:</span>
                             <p>
                               {new Date(p.dataRitiro).toLocaleDateString()}{" "}
                               {p.oraRitiro}
                             </p>
                           </div>
                           <div>
-                            <span className="text-slate-500">Riconsegna:</span>
+                            <span className="app-text-muted">Riconsegna:</span>
                             <p>
                               {new Date(p.dataConsegna).toLocaleDateString()}{" "}
                               {p.oraConsegna}
                             </p>
                           </div>
                           <div>
-                            <span className="text-slate-500">
+                            <span className="app-text-muted">
                               Assicurazione:
                             </span>
                             <p>{p.copertura.tipo}</p>
                           </div>
                           <div>
-                            <span className="text-slate-500">Totale:</span>
-                            <p className="font-bold text-emerald-400">
+                            <span className="app-text-muted">Totale:</span>
+                            <p className="font-bold app-text-accent">
                               €{Number(p.totalePagato).toFixed(2)}
                             </p>
                           </div>
                           {p.accessori.length > 0 && (
                             <div className="col-span-2">
-                              <span className="text-slate-500">Accessori:</span>
+                              <span className="app-text-muted">Accessori:</span>
                               <p>{p.accessori.map((a) => a.nome).join(", ")}</p>
                             </div>
                           )}
@@ -195,13 +195,13 @@ export default function DashboardPage() {
                           <div className="flex gap-3 mt-4">
                             <button
                               onClick={() => openEdit(p)}
-                              className="text-sm text-blue-400 hover:text-blue-300 transition"
+                              className="text-sm text-info hover:opacity-80 transition"
                             >
                               Modifica
                             </button>
                             <button
                               onClick={() => handleCancella(p.id)}
-                              className="text-sm text-red-400 hover:text-red-300 transition"
+                              className="text-sm text-error hover:opacity-80 transition"
                             >
                               Cancella
                             </button>
@@ -211,7 +211,7 @@ export default function DashboardPage() {
                         {!puoModificare &&
                           p.stato === "PENDING" &&
                           giorni < 2 && (
-                            <p className="text-xs text-slate-500 mt-3">
+                            <p className="text-xs app-text-muted mt-3">
                               Modifica e cancellazione non disponibili (meno di
                               2 giorni al ritiro)
                             </p>

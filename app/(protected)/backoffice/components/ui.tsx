@@ -15,7 +15,7 @@ export function Toast({ msg, type, onClose }: {
   return (
     <div style={{
       position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
-      background: type === 'ok' ? '#10b981' : '#ef4444',
+      background: type === 'ok' ? 'var(--accent)' : 'oklch(52% 0.22 25)',
       color: '#fff', padding: '12px 20px', borderRadius: 10,
       fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600,
       boxShadow: '0 8px 32px rgba(0,0,0,0.25)', animation: 'slideUp 0.25s ease',

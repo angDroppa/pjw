@@ -34,8 +34,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   }
 
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">
+    <html
+      lang="it"
+      data-theme="soft-pink-brutalist"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col bg-base-100 text-base-content">
         <QueryProvider>
           <GlobalLoader />
           <Toaster position="top-right" />

@@ -11,8 +11,8 @@ export default function StepAccessori({ onNext, onPrev }: { onNext: () => void; 
 
   if (loadingAccessori) {
     return (
-      <div className="flex items-center justify-center py-12 gap-2 text-slate-400 text-sm">
-        <span className="loading loading-spinner loading-sm text-emerald-400" />
+      <div className="flex items-center justify-center py-12 gap-2 app-text-muted text-sm">
+        <span className="loading loading-spinner loading-sm text-primary" />
         Caricamento accessori...
       </div>
     );
@@ -20,7 +20,7 @@ export default function StepAccessori({ onNext, onPrev }: { onNext: () => void; 
 
   return (
     <div className="flex flex-col gap-6">
-      <p className="text-slate-400 text-sm">
+      <p className="app-text-muted text-sm">
         Aggiungi accessori al tuo noleggio. Puoi anche saltare questo step.
       </p>
 
@@ -30,39 +30,33 @@ export default function StepAccessori({ onNext, onPrev }: { onNext: () => void; 
           return (
             <label
               key={acc.id}
-              className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition ${
-                checked
-                  ? "border-emerald-400 bg-emerald-400/10"
-                  : "border-slate-700 bg-slate-800 hover:border-slate-600"
-              }`}
+              className={`app-option-card flex items-center gap-3 cursor-pointer ${checked ? "app-option-card--selected" : ""}`}
             >
               <input
                 type="checkbox"
                 checked={checked}
                 onChange={() => toggleAccessorio(acc.id)}
-                className="w-4 h-4 accent-emerald-400 rounded"
+                className="checkbox checkbox-primary checkbox-sm rounded-none"
               />
-              <span className="flex-1 text-sm text-slate-200">{acc.nome}</span>
-              <span className="text-sm font-semibold text-slate-400">+€{acc.prezzo.toFixed(2)}</span>
+              <span className="flex-1 text-sm">{acc.nome}</span>
+              <span className="text-sm font-semibold app-text-muted">+€{acc.prezzo.toFixed(2)}</span>
             </label>
           );
         })}
       </div>
 
       {totaleAccessori > 0 && (
-        <div className="flex justify-between text-sm border-t border-slate-800 pt-3">
-          <span className="text-slate-400">Totale accessori</span>
-          <span className="font-bold text-emerald-400">+€{totaleAccessori.toFixed(2)}</span>
+        <div className="flex justify-between text-sm border-t-2 border-base-300 pt-3">
+          <span className="app-text-muted">Totale accessori</span>
+          <span className="font-bold app-text-accent">+€{totaleAccessori.toFixed(2)}</span>
         </div>
       )}
 
       <div className="flex gap-3 mt-2">
-        <button type="button" onClick={onPrev}
-          className="flex-1 py-3 rounded-xl border border-slate-700 text-slate-300 font-semibold text-sm hover:border-slate-500 transition">
+        <button type="button" onClick={onPrev} className="app-btn-ghost flex-1">
           ← Indietro
         </button>
-        <button type="button" onClick={onNext}
-          className="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-500 text-slate-900 font-bold text-sm transition hover:opacity-90">
+        <button type="button" onClick={onNext} className="app-btn-primary flex-1">
           Assicurazione →
         </button>
       </div>

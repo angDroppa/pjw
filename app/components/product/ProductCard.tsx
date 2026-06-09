@@ -43,7 +43,7 @@ export default function ProductCard({ product, onBook }: ProductCardProps) {
 
           <h3 className="card-title">{product.nome}</h3>
 
-          <p className="text-slate-400 text-xs mt-1">
+          <p className="app-text-muted text-xs mt-1">
             da €{prezzoMin.toFixed(2)} / giorno
           </p>
         </div>
