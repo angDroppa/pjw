@@ -25,6 +25,7 @@
     "react-dom": "19.2.4",
     "react-hook-form": "^7.77.0",
     "react-hot-toast": "^2.6.0",
+    "resend": "^6.12.4",
     "swagger-ui-react": "^5.32.6",
     "zod": "^4.4.3",
     "zustand": "^5.0.14"

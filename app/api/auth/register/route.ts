@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { RegisterSchema } from "@/lib/validators/auth";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
+import { randomUUID } from "crypto";
+import { sendConfermaRegistrazione } from "@/lib/resender/conferma-registrazione";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -22,16 +24,20 @@ export async function POST(req: NextRequest) {
   }
 
   const hashed = await bcrypt.hash(password, 10);
+  const verificationToken = randomUUID();
 
-  const user = await prisma.user.create({
+  await prisma.user.create({
     data: {
       firstName,
       lastName,
       email,
       password: hashed,
       roleName: "CUSTOMER",
+      verificationToken,
     },
   });
+
+  await sendConfermaRegistrazione(email, firstName, verificationToken);
 
   return new NextResponse(null, { status: 201 });
 }

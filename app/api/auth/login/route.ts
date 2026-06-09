@@ -28,6 +28,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Credenziali non valide" }, { status: 401 });
   }
 
+  if (!user.verified) {
+    return NextResponse.json(
+      { error: "Email non verificata. Controlla la tua casella di posta." },
+      { status: 403 }
+    );
+  }
+
   const accessToken = await signAccessToken({ userId: user.id, role: user.roleName });
   const refreshToken = await signRefreshToken(user.id);
 

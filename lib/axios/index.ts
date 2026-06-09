@@ -1,6 +1,7 @@
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import { useLoadingStore } from '../store/loading.store'
+import { createElement } from 'react'
 
 //creazione client axios riutilizzato nella altre pagine
 //date informazioni base 
@@ -36,6 +37,10 @@ api.interceptors.response.use(
       //utile per centralizzare evitando try catch in ogni request con possibile fallimento legato a token
       // causa una navigazione hard che distrugge completamente la pagina — React smonta tutto, il browser libera tutta la memoria. 
       // La promise orfana vive pochissimo.
+
+      if (error.config?.headers?.['x-silent-401']) {
+        return Promise.reject(error)
+      }
       window.location.href = `/login?from=${window.location.pathname}`
       return new Promise(() => { }) // promise che non si risolve mai, pagina cambia prima
     }
@@ -46,7 +51,11 @@ api.interceptors.response.use(
         ? error.response.data.error
         : undefined
 
-    toast.error(message ?? getErrorMessage(status))
+    // toast.error(message ?? getErrorMessage(status))
+    toast.custom(
+      createElement("div", { className: "bg-red-600 text-white px-4 py-3 text-sm font-medium rounded-lg" }, message ?? getErrorMessage(status))
+    )
+
     return Promise.reject(error)
   }
 )

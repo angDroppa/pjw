@@ -14,8 +14,10 @@ export const authApi = {
     await api.post('/auth/logout')
     window.location.href = '/login'
   },
-    me: async () => {
-    const res = await api.get('/users/me')
+  me: async () => {
+    const res = await api.get('/users/me', {
+      headers: { 'x-silent-401': 'true' }
+    })
     return res.data.user
   },
 }

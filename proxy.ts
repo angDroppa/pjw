@@ -13,6 +13,8 @@ const PUBLIC_PATHS = [
   "/api/assicurazioni",
   "/api/disponibilita",
   "/details",
+  "/api/auth/verify",
+  "/verify",
 ];
 
 const ROLE_PROTECTED_PATHS: Record<string, string[]> = {
@@ -20,7 +22,11 @@ const ROLE_PROTECTED_PATHS: Record<string, string[]> = {
   "/dashboard/settings": ["admin", "manager"],
 };
 
-const NAVBAR_HIDDEN_PATHS = ["/login", "/register"];
+const NAVBAR_HIDDEN_PATHS = [
+  "/login",
+  "/register",
+  "/verify",
+];
 
 function checkRole(pathname: string, role: string): boolean {
   const matchedPath = Object.keys(ROLE_PROTECTED_PATHS).find(p => pathname.startsWith(p))
