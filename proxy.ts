@@ -24,26 +24,31 @@ const ROLE_PROTECTED_PATHS: Record<string, string[]> = {
 
 const NAVBAR_HIDDEN_PATHS = ["/login", "/register", "/verify"];
 
-// 👉 metti qui il dominio frontend quando separi tutto
-const ALLOWED_ORIGIN = process.env.CORS_ORIGIN || "";
+function getAllowedOrigins(): string[] {
+  const origins = [
+    "http://localhost:3001",
+    "http://localhost:3000",
+  ];
+
+  const envOrigin = process.env.CORS_ORIGIN;
+  if (envOrigin) {
+    envOrigin.split(",").map((o) => o.trim()).forEach((o) => origins.push(o));
+  }
+
+  return origins;
+}
 
 function setCorsHeaders(req: NextRequest, res: NextResponse) {
   const origin = req.headers.get("origin");
-
-  const allowedOrigins = [
-    "http://localhost:3001",
-  ];
-
   if (!origin) return;
+
+  const allowedOrigins = getAllowedOrigins();
 
   if (allowedOrigins.includes(origin)) {
     res.headers.set("Access-Control-Allow-Origin", origin);
     res.headers.set("Access-Control-Allow-Credentials", "true");
-    res.headers.set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-    res.headers.set(
-      "Access-Control-Allow-Headers",
-      "Content-Type, Authorization"
-    );
+    res.headers.set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS,PATCH");
+    res.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
     res.headers.set("Vary", "Origin");
   }
 }
@@ -92,7 +97,11 @@ export async function proxy(req: NextRequest) {
 
     if (accessToken) {
       const payload = await verifyAccessToken(accessToken);
-      if (payload) return NextResponse.redirect(new URL("/dashboard", req.url));
+      if (payload) {
+        const res = NextResponse.redirect(new URL("/dashboard", req.url));
+        setCorsHeaders(req, res);
+        return res;
+      }
     }
 
     const requestHeaders = new Headers(req.headers);
@@ -108,7 +117,7 @@ export async function proxy(req: NextRequest) {
   // =========================
   if (
     PUBLIC_PATHS.some((p) =>
-      p === "/" ? pathname === "/" : pathname === p || pathname.startsWith(p)
+      p === "/" ? pathname === "/" : pathname === p || pathname.startsWith(p + "/") || pathname === p
     )
   ) {
     const requestHeaders = new Headers(req.headers);
@@ -155,7 +164,9 @@ export async function proxy(req: NextRequest) {
 
       if (newPayload) {
         if (!checkRole(pathname, newPayload.role)) {
-          return handleForbidden(req);
+          const res = handleForbidden(req);
+          setCorsHeaders(req, res);
+          return res;
         }
 
         requestHeaders.set("x-user-id", String(newPayload.userId));
@@ -165,9 +176,7 @@ export async function proxy(req: NextRequest) {
     }
 
     const res = NextResponse.next({ request: { headers: requestHeaders } });
-
     setCookies.forEach((cookie) => res.headers.append("Set-Cookie", cookie));
-
     setCorsHeaders(req, res);
     return res;
   }
@@ -175,7 +184,11 @@ export async function proxy(req: NextRequest) {
   // =========================
   // VALID TOKEN
   // =========================
-  if (!checkRole(pathname, payload.role)) return handleForbidden(req);
+  if (!checkRole(pathname, payload.role)) {
+    const res = handleForbidden(req);
+    setCorsHeaders(req, res);
+    return res;
+  }
 
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-user-id", String(payload.userId));
@@ -184,7 +197,6 @@ export async function proxy(req: NextRequest) {
 
   const res = NextResponse.next({ request: { headers: requestHeaders } });
   setCorsHeaders(req, res);
-
   return res;
 }
 
