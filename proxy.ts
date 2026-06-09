@@ -28,6 +28,8 @@ function getAllowedOrigins(): string[] {
   const origins = [
     "http://localhost:3001",
     "http://localhost:3000",
+    "capacitor://localhost",  // iOS
+    "http://localhost",       // Android WebView
   ];
 
   const envOrigin = process.env.CORS_ORIGIN;
@@ -44,14 +46,16 @@ function setCorsHeaders(req: NextRequest, res: NextResponse) {
 
   const allowedOrigins = getAllowedOrigins();
 
-  const isLocalhost = /^http:\/\/localhost(:\d+)?$/.test(origin) ||
-                      /^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin);
+  const isLocalhost =
+    /^http:\/\/localhost(:\d+)?$/.test(origin) ||
+    /^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin) ||
+    origin === "capacitor://localhost";
 
   if (allowedOrigins.includes(origin) || isLocalhost) {
     res.headers.set("Access-Control-Allow-Origin", origin);
     res.headers.set("Access-Control-Allow-Credentials", "true");
     res.headers.set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS,PATCH");
-    res.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization, x-silent-401");
     res.headers.set("Vary", "Origin");
   }
 }

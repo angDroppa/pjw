@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { signAccessToken, signRefreshToken } from "@/lib/auth/jwt";
-import { setAuthCookies } from "@/lib/auth/cookies";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { UserResponse } from "@/lib/validators/user";
@@ -46,9 +45,13 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  await setAuthCookies(accessToken, refreshToken);
+  const isProd = process.env.NODE_ENV === "production";
+  const cookieOptions = [
+    `access_token=${accessToken}; HttpOnly; Path=/; Max-Age=${60 * 15}; SameSite=${isProd ? "None" : "Lax"}${isProd ? "; Secure" : ""}`,
+    `refresh_token=${refreshToken}; HttpOnly; Path=/; Max-Age=${60 * 60 * 24 * 7}; SameSite=${isProd ? "None" : "Lax"}${isProd ? "; Secure" : ""}`,
+  ];
 
-  return NextResponse.json<UserResponse>({
+  const response = NextResponse.json<UserResponse>({
     user: {
       id: user.id,
       email: user.email,
@@ -57,4 +60,7 @@ export async function POST(req: NextRequest) {
       roleName: user.roleName,
     },
   });
+
+  cookieOptions.forEach(cookie => response.headers.append("Set-Cookie", cookie));
+  return response;
 }
