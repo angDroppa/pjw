@@ -27,7 +27,7 @@ export default async function Navbar({ user }: NavbarProps) {
 
   return (
     <div className="w-full">
-      <div className="fixed top-0 left-0 w-full z-50 bg-base-200 px-20">
+      <div className="fixed top-0 left-0 w-full z-50 bg-base-200 px-0 md:px-20">
         <div className="h-16 flex items-center justify-between px-4">
           <div className="flex-1">
             <Link href="/" className="text-xl font-bold">

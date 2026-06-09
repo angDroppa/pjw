@@ -21,9 +21,13 @@ export async function GET(req: NextRequest) {
         if (action === 'stock') {
             const stock = await prisma.biciclettaLocation.findMany({
                 include: {
-                    biciclettaSpecific: true,
+                    biciclettaSpecific: {
+                        include: {
+                            bicicletta: true,
+                        }
+                    },
                     location: true,
-                },
+                }
             })
             return NextResponse.json(stock)
         }

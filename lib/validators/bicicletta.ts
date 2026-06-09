@@ -15,15 +15,36 @@ export const AlimentazioneSchema = z.enum([
 // SPECIFICHE
 // ==========================================
 
+export const BiciclettaBaseSchema = z.object({
+  id: z.number().int(),
+  nome: z.string(),
+  tipologia: TipologiaBiciclettaSchema,
+})
+
+// export const SpecificheBiciclettaResponseSchema = z.object({
+//   id: z.number().int().openapi({ example: 1 }),
+//   size: z.string().openapi({ example: "L" }),
+//   prezzoGiornata: z.number().openapi({ example: 29.99 }),
+//   prezzoMezzaGiornata: z.number().openapi({ example: 17.99 }),
+//   altezzaMin: z.number().int().optional().openapi({ example: 160 }),
+//   altezzaMax: z.number().int().optional().openapi({ example: 185 }),
+//   biciclettaId: z.number().int().openapi({ example: 1 }),
+// }).openapi("SpecificheBiciclettaResponse");
+
 export const SpecificheBiciclettaResponseSchema = z.object({
-  id: z.number().int().openapi({ example: 1 }),
-  size: z.string().openapi({ example: "L" }),
-  prezzoGiornata: z.number().openapi({ example: 29.99 }),
-  prezzoMezzaGiornata: z.number().openapi({ example: 17.99 }),
-  altezzaMin: z.number().int().optional().openapi({ example: 160 }),
-  altezzaMax: z.number().int().optional().openapi({ example: 185 }),
-  biciclettaId: z.number().int().openapi({ example: 1 }),
-}).openapi("SpecificheBiciclettaResponse");
+  id: z.number().int(),
+  size: z.string(),
+  prezzoGiornata: z.number(),
+  prezzoMezzaGiornata: z.number(),
+  altezzaMin: z.number().int().optional(),
+  altezzaMax: z.number().int().optional(),
+
+  bicicletta: BiciclettaBaseSchema, // 👈 QUI
+})
+
+export const BiciclettaResponseSchema = BiciclettaBaseSchema.extend({
+  specifics: z.array(z.lazy(() => SpecificheBiciclettaResponseSchema)),
+})
 
 export const CreateSpecificheSchema = z.object({
   size: z.string().min(1).openapi({ example: "L" }),
@@ -49,12 +70,12 @@ export const UpdateSpecificheSchema = z.object({
 // BICICLETTA
 // ==========================================
 
-export const BiciclettaResponseSchema = z.object({
-  id: z.number().int().openapi({ example: 1 }),
-  nome: z.string().openapi({ example: "Trek Marlin 7" }),
-  tipologia: TipologiaBiciclettaSchema,
-  specifics: z.array(SpecificheBiciclettaResponseSchema),
-}).openapi("BiciclettaResponse");
+// export const BiciclettaResponseSchema = z.object({
+//   id: z.number().int().openapi({ example: 1 }),
+//   nome: z.string().openapi({ example: "Trek Marlin 7" }),
+//   tipologia: TipologiaBiciclettaSchema,
+//   specifics: z.array(SpecificheBiciclettaResponseSchema),
+// }).openapi("BiciclettaResponse");
 
 export const CreateBiciclettaSchema = z.object({
   nome: z.string().min(1).openapi({ example: "Trek Marlin 7" }),

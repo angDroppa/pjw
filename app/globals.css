@@ -1,5 +1,52 @@
+
+@import url("https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap");
 @import "tailwindcss";
 @plugin "daisyui" {
   /* themes: all; */
 }
 
+body {
+  background: #0f1117;
+  margin: 0;
+}
+@keyframes slideUp {
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #4f7dff !important;
+  outline: none;
+}
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a3148;
+  border-radius: 99px;
+}
+
+:root {
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+
+  --accent: #4f7dff;
+
+  --text-primary: #e8ecf4;
+  --text-secondary: #7a8aab;
+
+  --card-bg: #161923;
+  --input-bg: #0f1117;
+  --border: #2a3148;
+}
