@@ -44,7 +44,10 @@ function setCorsHeaders(req: NextRequest, res: NextResponse) {
 
   const allowedOrigins = getAllowedOrigins();
 
-  if (allowedOrigins.includes(origin)) {
+  const isLocalhost = /^http:\/\/localhost(:\d+)?$/.test(origin) ||
+                      /^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin);
+
+  if (allowedOrigins.includes(origin) || isLocalhost) {
     res.headers.set("Access-Control-Allow-Origin", origin);
     res.headers.set("Access-Control-Allow-Credentials", "true");
     res.headers.set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS,PATCH");
