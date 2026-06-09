@@ -22,50 +22,114 @@ const ROLE_PROTECTED_PATHS: Record<string, string[]> = {
   "/dashboard/settings": ["admin", "manager"],
 };
 
-const NAVBAR_HIDDEN_PATHS = [
-  "/login",
-  "/register",
-  "/verify",
-];
+const NAVBAR_HIDDEN_PATHS = ["/login", "/register", "/verify"];
 
-function checkRole(pathname: string, role: string): boolean {
-  const matchedPath = Object.keys(ROLE_PROTECTED_PATHS).find(p => pathname.startsWith(p))
-  if (!matchedPath) return true
-  return ROLE_PROTECTED_PATHS[matchedPath].includes(role.toLowerCase())
+// 👉 metti qui il dominio frontend quando separi tutto
+const ALLOWED_ORIGIN = process.env.CORS_ORIGIN || "";
+
+function setCorsHeaders(req: NextRequest, res: NextResponse) {
+  const origin = req.headers.get("origin");
+
+  const allowedOrigins = [
+    "http://localhost:3001",
+  ];
+
+  if (!origin) return;
+
+  if (allowedOrigins.includes(origin)) {
+    res.headers.set("Access-Control-Allow-Origin", origin);
+    res.headers.set("Access-Control-Allow-Credentials", "true");
+    res.headers.set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+    res.headers.set(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization"
+    );
+    res.headers.set("Vary", "Origin");
+  }
 }
 
 function handleForbidden(req: NextRequest) {
-  if (req.nextUrl.pathname.startsWith('/api')) {
-    return NextResponse.json({ error: 'Accesso negato' }, { status: 403 })
+  if (req.nextUrl.pathname.startsWith("/api")) {
+    return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
   }
-  return NextResponse.redirect(new URL('/dashboard', req.url))
+  return NextResponse.redirect(new URL("/dashboard", req.url));
+}
+
+function handleUnauthenticated(req: NextRequest) {
+  if (req.nextUrl.pathname.startsWith("/api")) {
+    return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
+  }
+  const loginUrl = new URL("/login", req.url);
+  loginUrl.searchParams.set("from", req.nextUrl.pathname);
+  return NextResponse.redirect(loginUrl);
+}
+
+function checkRole(pathname: string, role: string): boolean {
+  const matchedPath = Object.keys(ROLE_PROTECTED_PATHS).find((p) =>
+    pathname.startsWith(p)
+  );
+  if (!matchedPath) return true;
+  return ROLE_PROTECTED_PATHS[matchedPath].includes(role.toLowerCase());
 }
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // =========================
+  // CORS preflight
+  // =========================
+  if (req.method === "OPTIONS") {
+    const res = new NextResponse(null, { status: 204 });
+    setCorsHeaders(req, res);
+    return res;
+  }
+
+  // =========================
+  // LOGIN / REGISTER bypass auth
+  // =========================
   if (pathname === "/login" || pathname === "/register") {
     const accessToken = req.cookies.get("access_token")?.value;
+
     if (accessToken) {
       const payload = await verifyAccessToken(accessToken);
       if (payload) return NextResponse.redirect(new URL("/dashboard", req.url));
     }
+
     const requestHeaders = new Headers(req.headers);
     requestHeaders.set("x-pathname", pathname);
-    return NextResponse.next({ request: { headers: requestHeaders } });
+
+    const res = NextResponse.next({ request: { headers: requestHeaders } });
+    setCorsHeaders(req, res);
+    return res;
   }
 
-  if (PUBLIC_PATHS.some((p) => p === "/" ? pathname === "/" : pathname === p || pathname.startsWith(p))) {
+  // =========================
+  // PUBLIC PATHS
+  // =========================
+  if (
+    PUBLIC_PATHS.some((p) =>
+      p === "/" ? pathname === "/" : pathname === p || pathname.startsWith(p)
+    )
+  ) {
     const requestHeaders = new Headers(req.headers);
     requestHeaders.set("x-pathname", pathname);
-    return NextResponse.next({ request: { headers: requestHeaders } });
+
+    const res = NextResponse.next({ request: { headers: requestHeaders } });
+    setCorsHeaders(req, res);
+    return res;
   }
 
+  // =========================
+  // AUTH CHECK
+  // =========================
   const accessToken = req.cookies.get("access_token")?.value;
   if (!accessToken) return handleUnauthenticated(req);
 
   const payload = await verifyAccessToken(accessToken);
 
+  // =========================
+  // REFRESH FLOW
+  // =========================
   if (!payload) {
     const refreshToken = req.cookies.get("refresh_token")?.value;
     if (!refreshToken) return handleUnauthenticated(req);
@@ -77,46 +141,51 @@ export async function proxy(req: NextRequest) {
 
     if (!refreshRes.ok) return handleUnauthenticated(req);
 
-    const setCookies = refreshRes.headers.getSetCookie()
+    const setCookies = refreshRes.headers.getSetCookie();
+
     const newAccessToken = setCookies
-      .find(c => c.startsWith("access_token="))
+      .find((c) => c.startsWith("access_token="))
       ?.split(";")[0]
-      ?.split("=")[1]
+      ?.split("=")[1];
 
     const requestHeaders = new Headers(req.headers);
 
     if (newAccessToken) {
-      const newPayload = await verifyAccessToken(newAccessToken)
+      const newPayload = await verifyAccessToken(newAccessToken);
+
       if (newPayload) {
-        if (!checkRole(pathname, newPayload.role)) return handleForbidden(req)
-        requestHeaders.set("x-user-id", String(newPayload.userId))
-        requestHeaders.set("x-user-role", newPayload.role)
-        requestHeaders.set("x-pathname", pathname)
+        if (!checkRole(pathname, newPayload.role)) {
+          return handleForbidden(req);
+        }
+
+        requestHeaders.set("x-user-id", String(newPayload.userId));
+        requestHeaders.set("x-user-role", newPayload.role);
+        requestHeaders.set("x-pathname", pathname);
       }
     }
 
-    const response = NextResponse.next({ request: { headers: requestHeaders } });
-    setCookies.forEach((cookie) => response.headers.append("Set-Cookie", cookie));
-    return response;
+    const res = NextResponse.next({ request: { headers: requestHeaders } });
+
+    setCookies.forEach((cookie) => res.headers.append("Set-Cookie", cookie));
+
+    setCorsHeaders(req, res);
+    return res;
   }
 
-  if (!checkRole(pathname, payload.role)) return handleForbidden(req)
+  // =========================
+  // VALID TOKEN
+  // =========================
+  if (!checkRole(pathname, payload.role)) return handleForbidden(req);
 
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-user-id", String(payload.userId));
   requestHeaders.set("x-user-role", payload.role);
   requestHeaders.set("x-pathname", pathname);
 
-  return NextResponse.next({ request: { headers: requestHeaders } });
-}
+  const res = NextResponse.next({ request: { headers: requestHeaders } });
+  setCorsHeaders(req, res);
 
-function handleUnauthenticated(req: NextRequest) {
-  if (req.nextUrl.pathname.startsWith("/api")) {
-    return NextResponse.json({ error: "Non autorizzato" }, { status: 401 })
-  }
-  const loginUrl = new URL("/login", req.url);
-  loginUrl.searchParams.set("from", req.nextUrl.pathname);
-  return NextResponse.redirect(loginUrl);
+  return res;
 }
 
 export const config = {

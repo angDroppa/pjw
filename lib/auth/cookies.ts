@@ -7,22 +7,30 @@ const REFRESH_TOKEN_COOKIE = "refresh_token";
 //funzione che setta i cookie di access e refresh token, con le opzioni httpOnly, secure, sameSite, path e maxAge
 export async function setAuthCookies(accessToken: string, refreshToken: string) {
   const cookieStore = await cookies();
+  const isProd = process.env.NODE_ENV === "production"; // ← qui
+
+  // cookieStore.set(ACCESS_TOKEN_COOKIE, accessToken, {
+  //   httpOnly: true,
+  //   secure: process.env.NODE_ENV === "production",
+  //   sameSite: "lax",
+  //   path: "/",
+  //   maxAge: 60 * 15, // 15 minuti
+  // });
 
   cookieStore.set(ACCESS_TOKEN_COOKIE, accessToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
     path: "/",
-    maxAge: 60 * 15, // 15 minuti
+    maxAge: 60 * 15,
   });
 
-  //mette dentro cookie store il refresh token con le stesse opzioni ma maxAge di 7 giorni
   cookieStore.set(REFRESH_TOKEN_COOKIE, refreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
     path: "/",
-    maxAge: 60 * 60 * 24 * 7, // 7 giorni
+    maxAge: 60 * 60 * 24 * 7,
   });
 }
 
