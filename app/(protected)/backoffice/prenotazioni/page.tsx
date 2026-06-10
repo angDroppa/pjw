@@ -23,6 +23,7 @@ const statoLabel: Record<StatoPrenotazione, string> = {
   PICKED_UP: "In corso",
   RETURNED: "Completata",
   LATE: "In ritardo",
+  DAMAGED: "Danneggiata",
 };
 
 const statColor: Record<StatoPrenotazione, string> = {
@@ -30,6 +31,7 @@ const statColor: Record<StatoPrenotazione, string> = {
   PICKED_UP: "#3b82f6",
   RETURNED: "#10b981",
   LATE: "#ef4444",
+  DAMAGED: "red",
 };
 
 const alimentazioneLabel: Record<
@@ -241,6 +243,15 @@ export default function PrenotazioniPage() {
                   {p.stato === "PICKED_UP" && (
                     <Btn small onClick={() => handleStato(p.id, "RETURNED")}>
                       🔄 Consegnata
+                    </Btn>
+                  )}
+                  {p.stato === "PICKED_UP" && (
+                    <Btn
+                      small
+                      variant="warning"
+                      onClick={() => handleStato(p.id, "DAMAGED")}
+                    >
+                      🚨 Danneggiata
                     </Btn>
                   )}
                   {(p.stato === "PICKED_UP" || p.stato === "PENDING") && (

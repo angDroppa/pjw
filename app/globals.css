@@ -431,6 +431,11 @@ h4 {
   color: oklch(42% 0.18 25);
 }
 
+.badge-damagged {
+  background: oklch(52% 0.22 25 / 0.2);
+  color: oklch(59.962% 0.24331 27.111);
+}
+
 /* ─── Animations ───────────────────────────────────────────────────────────── */
 
 @keyframes slideUp {

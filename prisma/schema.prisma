@@ -24,6 +24,7 @@ enum StatoPrenotazione {
   PICKED_UP
   RETURNED
   LATE
+  DAMAGED
   @@schema("new")
 
 }

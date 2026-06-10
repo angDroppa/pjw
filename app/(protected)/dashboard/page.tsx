@@ -19,6 +19,8 @@ const statoLabel: Record<StatoPrenotazione, string> = {
   PICKED_UP: "In corso",
   RETURNED: "Completata",
   LATE: "In ritardo",
+  DAMAGED: "Danneggiata"
+
 };
 
 const statColor: Record<StatoPrenotazione, string> = {
@@ -26,6 +28,8 @@ const statColor: Record<StatoPrenotazione, string> = {
   PICKED_UP: "badge-picked-up",
   RETURNED: "badge-returned",
   LATE: "badge-late",
+  DAMAGED: "badge-damagged"
+
 };
 
 const alimentazioneLabel: Record<

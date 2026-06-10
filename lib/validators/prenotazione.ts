@@ -11,7 +11,7 @@ extendZodWithOpenApi(z);
 
 
 export const StatoPrenotazioneSchema = z.enum([
-  "PENDING", "PICKED_UP", "RETURNED", "LATE",
+  "PENDING", "PICKED_UP", "RETURNED", "LATE", "DAMAGED"
 ]).openapi({ example: "PENDING" });
 
 // ==========================================
