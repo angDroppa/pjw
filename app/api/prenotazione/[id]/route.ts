@@ -190,3 +190,53 @@ export async function DELETE(
 
   return NextResponse.json({ ok: true })
 }
+
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await requireSession()
+
+    const { id } = await params
+    const parsedId = parseInt(id)
+
+    if (!parsedId)
+      return NextResponse.json({ error: 'id non valido' }, { status: 400 })
+
+    const prenotazione = await prisma.prenotazione.findUnique({
+      where: { id: parsedId },
+      include: {
+        utente: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            roleName: true,
+          },
+        },
+        bicicletta: true,
+        location: true,
+        copertura: true,
+        prenotazioni: { include: { accessorio: true } },
+      },
+    })
+
+    if (!prenotazione)
+      return NextResponse.json({ error: 'Non trovata' }, { status: 404 })
+
+    if (prenotazione.utenteId !== session.userId) {
+      return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 })
+    }
+
+    return NextResponse.json({
+      ...prenotazione,
+      accessori: prenotazione.prenotazioni.map((ap) => ap.accessorio),
+      prenotazioni: undefined,
+    }, { status: 200 })
+
+  } catch (error) {
+    return NextResponse.json({ error: 'Errore interno del server' }, { status: 500 })
+  }
+}

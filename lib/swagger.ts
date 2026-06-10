@@ -230,7 +230,7 @@ registry.registerPath({
 // --- Locations ---
 registry.registerPath({
   method: "get",
-  path: "/api/backoffice/locations", 
+  path: "/api/locations", 
   tags: ["Backoffice — Configurazione"],
   summary: "Lista di tutte le sedi",
   responses: {
@@ -247,7 +247,7 @@ registry.registerPath({
 
 registry.registerPath({
   method: "post",
-  path: "/api/backoffice/locations",
+  path: "/api/locations",
   tags: ["Backoffice — Configurazione"],
   summary: "Crea una nuova sede",
   request: {
@@ -266,7 +266,7 @@ registry.registerPath({
 // --- Accessori ---
 registry.registerPath({
   method: "get",
-  path: "/api/backoffice/accessori",
+  path: "/api/accessori",
   tags: ["Backoffice — Configurazione"],
   summary: "Lista di tutti gli accessori disponibili",
   responses: {
@@ -283,7 +283,7 @@ registry.registerPath({
 
 registry.registerPath({
   method: "post",
-  path: "/api/backoffice/accessori",
+  path: "/api/accessori",
   tags: ["Backoffice — Configurazione"],
   summary: "Crea un nuovo accessorio",
   request: {
@@ -302,7 +302,7 @@ registry.registerPath({
 // --- Assicurazioni ---
 registry.registerPath({
   method: "get",
-  path: "/api/backoffice/assicurazioni",
+  path: "/api/assicurazioni",
   tags: ["Backoffice — Configurazione"],
   summary: "Lista di tutte le coperture assicurative",
   responses: {
@@ -319,7 +319,7 @@ registry.registerPath({
 
 registry.registerPath({
   method: "post",
-  path: "/api/backoffice/assicurazioni",
+  path: "/api/assicurazioni",
   tags: ["Backoffice — Configurazione"],
   summary: "Crea una nuova assicurazione",
   request: {
@@ -338,7 +338,7 @@ registry.registerPath({
 // --- Operatività Noleggi ---
 registry.registerPath({
   method: "patch",
-  path: "/api/backoffice/prenotazioni/{id}",
+  path: "/api/prenotazione/{id}",
   tags: ["Backoffice — Operativo"],
   summary: "Gestione stato ed esito noleggio",
   description: "Utilizzato in negozio per registrare il ritiro (PICKED_UP), riconsegna (RETURNED), ritardi (LATE), note o danni al mezzo.",
