@@ -1,4 +1,4 @@
-import { resend } from "./resend"
+import { transport } from "@/lib/email/transport"
 
 export async function sendConfermaRegistrazione(
   email: string,
@@ -7,10 +7,10 @@ export async function sendConfermaRegistrazione(
 ) {
   const url = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/verify?token=${verificationToken}`
 
-  const result = await resend.emails.send({
-    from: 'onboarding@resend.dev',
+  const result = await transport.sendMail({
+    from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
     to: email,
-    subject: 'Conferma la tua registrazione',
+    subject: "Conferma la tua registrazione",
     html: `
       <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
         <h2 style="margin-bottom: 8px;">Ciao ${firstName}! 👋</h2>
@@ -38,5 +38,5 @@ export async function sendConfermaRegistrazione(
     `,
   })
 
-  console.log("Resend result:", result)
+  console.log("NodeMailer result:", result)
 }
