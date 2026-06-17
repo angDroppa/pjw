@@ -3,18 +3,19 @@ import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { requireSession } from "@/lib/auth/session";
 import { getDisponibileCount } from "@/lib/disponibilita/disponibilita";
+import { inviaEmailConfermaPrenotazioni } from "@/lib/email/transport";
 
 const BatchItemSchema = z.object({
   biciclettaSpecificId: z.number().int().positive(),
-  locationId:           z.number().int().positive(),
-  alimentazione:        z.enum(["MUSCOLARE", "ELETTRICA"]),
-  dataRitiro:           z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  oraRitiro:            z.string().regex(/^\d{2}:\d{2}$/),
-  dataConsegna:         z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  oraConsegna:          z.string().regex(/^\d{2}:\d{2}$/),
-  coperturaId:          z.number().int().positive(),
-  accessoriIds:         z.array(z.number().int().positive()).optional().default([]),
-  totalePagato:         z.number().positive(),
+  locationId: z.number().int().positive(),
+  alimentazione: z.enum(["MUSCOLARE", "ELETTRICA"]),
+  dataRitiro: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  oraRitiro: z.string().regex(/^\d{2}:\d{2}$/),
+  dataConsegna: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  oraConsegna: z.string().regex(/^\d{2}:\d{2}$/),
+  coperturaId: z.number().int().positive(),
+  accessoriIds: z.array(z.number().int().positive()).optional().default([]),
+  totalePagato: z.number().positive(),
 });
 
 const BatchSchema = z.object({
@@ -50,7 +51,7 @@ export async function POST(req: NextRequest) {
   if (nonDisponibili.length > 0) {
     return NextResponse.json(
       {
-        error:           "Alcune bici non sono più disponibili.",
+        error: "Alcune bici non sono più disponibili.",
         nonDisponibili,  // indici degli item non disponibili
       },
       { status: 409 },
@@ -62,24 +63,47 @@ export async function POST(req: NextRequest) {
     prenotazioni.map((p) =>
       prisma.prenotazione.create({
         data: {
-          dataRitiro:    new Date(p.dataRitiro),
-          oraRitiro:     p.oraRitiro,
-          dataConsegna:  new Date(p.dataConsegna),
-          oraConsegna:   p.oraConsegna,
+          dataRitiro: new Date(p.dataRitiro),
+          oraRitiro: p.oraRitiro,
+          dataConsegna: new Date(p.dataConsegna),
+          oraConsegna: p.oraConsegna,
           alimentazione: p.alimentazione,
-          totalePagato:  p.totalePagato,
-          stato:         "PENDING",
-          utenteId:      session.userId,
-          biciclettaId:  p.biciclettaSpecificId,
-          locationId:    p.locationId,
-          coperturaId:   p.coperturaId,
+          totalePagato: p.totalePagato,
+          stato: "PENDING",
+          utenteId: session.userId,
+          biciclettaId: p.biciclettaSpecificId,
+          locationId: p.locationId,
+          coperturaId: p.coperturaId,
           prenotazioni: {
             create: p.accessoriIds.map((accessorioId) => ({ accessorioId })),
           },
         },
+        include: { location: true },
       })
     )
   );
+
+  const utente = await prisma.user.findUnique({
+    where: { id: session.userId },
+    select: { email: true, firstName: true },
+  });
+
+  if (utente) {
+    const totaleComplessivo = create.reduce((sum, p) => sum + Number(p.totalePagato), 0);
+    await inviaEmailConfermaPrenotazioni(
+      utente.email,
+      utente.firstName,
+      create.map((p) => ({
+        dataRitiro: p.dataRitiro.toISOString().slice(0, 10),
+        oraRitiro: p.oraRitiro,
+        dataConsegna: p.dataConsegna.toISOString().slice(0, 10),
+        oraConsegna: p.oraConsegna,
+        locationNome: p.location.nome,
+        totalePagato: Number(p.totalePagato),
+      })),
+      totaleComplessivo,
+    );
+  }
 
   return NextResponse.json({ prenotazioni: create }, { status: 201 });
 }

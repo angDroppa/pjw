@@ -8,6 +8,7 @@ import { CreateBiciclettaSchema, CreateSpecificheSchema, UpdateSpecificheSchema 
 import { CreateBiciclettaLocationSchema, UpdateBiciclettaLocationSchema } from '@/lib/validators/biciclettaLocation'
 import { UpdatePrenotazioneSchema } from '@/lib/validators/prenotazione'
 import { Prisma } from '@/app/generated/prisma/client'
+import { inviaEmailPromemoria } from '@/lib/email/transport'
 
 export async function GET(req: NextRequest) {
     const session = await requireSession()
@@ -87,7 +88,7 @@ export async function GET(req: NextRequest) {
                     copertura: true,
                     prenotazioni: { include: { accessorio: true } },
                 },
-                orderBy: { dataRitiro: 'asc' },
+                orderBy: { id: 'desc' },
             })
 
             const mapped = prenotazioni.map(p => ({
@@ -197,6 +198,42 @@ export async function POST(req: NextRequest) {
     const { action } = body
 
     try {
+
+        // ── PROMEMORIA RITIRO ─────────────────────────────────────────────────────
+        // ── PROMEMORIA RITIRO ─────────────────────────────────────────────────────
+        if (action === 'send_reminders') {
+            const oggi = new Date()
+            oggi.setHours(0, 0, 0, 0)
+            const tra2giorni = new Date(oggi)
+            tra2giorni.setDate(oggi.getDate() + 2)
+            tra2giorni.setHours(23, 59, 59, 999)
+
+            const prenotazioni = await prisma.prenotazione.findMany({
+                where: {
+                    stato: 'PENDING',
+                    dataRitiro: {
+                        gte: oggi,
+                        lte: tra2giorni,
+                    },
+                },
+                include: { utente: true, location: true },
+            })
+
+            await Promise.all(
+                prenotazioni.map((p) =>
+                    inviaEmailPromemoria(
+                        p.utente.email,
+                        p.utente.firstName,
+                        new Date(p.dataRitiro).toLocaleDateString('it-IT'),
+                        p.oraRitiro,
+                        p.location.nome,
+                        p.location.indirizzo,
+                    )
+                )
+            )
+
+            return NextResponse.json({ inviati: prenotazioni.length })
+        }
 
         // ── LOCATION ──────────────────────────────────────────────────────────────
         if (action === 'create_location') {
@@ -378,8 +415,9 @@ export async function POST(req: NextRequest) {
         }
 
         // ── STATO PRENOTAZIONE ────────────────────────────────────────────────────
+        // ── STATO PRENOTAZIONE ────────────────────────────────────────────────────
         if (action === 'update_stato_prenotazione') {
-            const { prenotazioneId, ...rest } = body
+            const { prenotazioneId, costo, ...rest } = body
             if (!prenotazioneId) return NextResponse.json({ error: 'prenotazioneId obbligatorio' }, { status: 400 })
             const parsed = UpdatePrenotazioneSchema.safeParse(rest)
             if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
@@ -389,14 +427,62 @@ export async function POST(req: NextRequest) {
             })
             if (!prenotazione) return NextResponse.json({ error: 'Prenotazione non trovata' }, { status: 404 })
 
-            const updated = await prisma.prenotazione.update({
-                where: { id: parseInt(prenotazioneId) },
-                data: {
-                    ...(parsed.data.stato !== undefined && { stato: parsed.data.stato }),
-                    ...(parsed.data.noteRiconsegna !== undefined && { noteRiconsegna: parsed.data.noteRiconsegna }),
-                    ...(parsed.data.danni !== undefined && { danni: parsed.data.danni }),
-                },
+            const updated = await prisma.$transaction(async (tx) => {
+                const prenotazioneUpdated = await tx.prenotazione.update({
+                    where: { id: parseInt(prenotazioneId) },
+                    data: {
+                        ...(parsed.data.stato !== undefined && { stato: parsed.data.stato }),
+                        ...(parsed.data.noteRiconsegna !== undefined && { noteRiconsegna: parsed.data.noteRiconsegna }),
+                        ...(parsed.data.danni !== undefined && { danni: parsed.data.danni }),
+                    },
+                })
+
+                // Se la prenotazione passa a DAMAGED, registra la riparazione e decrementa lo stock disponibile
+                if (parsed.data.stato === 'DAMAGED') {
+                    const biciclettaLocation = await tx.biciclettaLocation.findUnique({
+                        where: {
+                            locationId_biciclettaSpecificId: {
+                                locationId: prenotazione.locationId,
+                                biciclettaSpecificId: prenotazione.biciclettaId,
+                            }
+                        },
+                    })
+
+                    if (!biciclettaLocation) {
+                        throw new Error('BiciclettaLocation non trovata per questa prenotazione')
+                    }
+
+                    await tx.riparazione.create({
+                        data: {
+                            biciclettaLocationId: biciclettaLocation.id,
+                            prenotazioneId: parseInt(prenotazioneId),
+                            motivo: parsed.data.danni ?? prenotazione.danni ?? 'Danno non specificato',
+                            ...(costo !== undefined && { costo }),
+                        },
+                    })
+
+                    const campoQuantita = prenotazione.alimentazione === 'ELETTRICA'
+                        ? 'quantitaElettrica'
+                        : 'quantitaMuscolare'
+
+                    const stockUpdate = await tx.biciclettaLocation.updateMany({
+                        where: {
+                            id: biciclettaLocation.id,
+                            [campoQuantita]: { gt: 0 },
+                        },
+                        data: {
+                            [campoQuantita]: { decrement: 1 },
+                        },
+                    })
+
+                    if (stockUpdate.count === 0) {
+                        throw new Error(`Stock ${campoQuantita} già a zero per questa bicicletta/location`)
+                    }
+                }
+
+                return prenotazioneUpdated
             })
+
             return NextResponse.json(updated)
         }
 

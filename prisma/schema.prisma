@@ -5,8 +5,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  schemas = ["new"]
-
+  schemas  = ["new"]
 }
 
 // ==========================================
@@ -26,7 +25,6 @@ enum StatoPrenotazione {
   LATE
   DAMAGED
   @@schema("new")
-
 }
 
 // ==========================================
@@ -37,8 +35,6 @@ model Role {
   role  String @id
   users User[]
   @@schema("new")
-
-
 }
 
 model User {
@@ -55,7 +51,6 @@ model User {
   prenotazioni      Prenotazione[]
   refreshTokens     RefreshToken[]
   @@schema("new")
-
 }
 
 model RefreshToken {
@@ -66,7 +61,6 @@ model RefreshToken {
   userId    Int
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@schema("new")
-
 }
 
 model Notifica {
@@ -78,7 +72,6 @@ model Notifica {
   utenteId  Int
   utente    User     @relation(fields: [utenteId], references: [id])
   @@schema("new")
-
 }
 
 // ==========================================
@@ -94,7 +87,7 @@ model Prenotazione {
   oraConsegna   String
 
   stato          StatoPrenotazione @default(PENDING)
-  alimentazione  Alimentazione     // ← aggiunto
+  alimentazione  Alimentazione
   note           String?
   noteRiconsegna String?
   danni          String?
@@ -113,6 +106,7 @@ model Prenotazione {
   copertura   Assicurazione @relation(fields: [coperturaId], references: [id], onDelete: Cascade)
 
   prenotazioni AccessorioPrenotazione[]
+  riparazioni  Riparazione[]
   @@schema("new")
 }
 
@@ -122,8 +116,6 @@ model Accessorio {
   prezzo       Float                    @default(0.0)
   prenotazioni AccessorioPrenotazione[]
   @@schema("new")
-
-
 }
 
 model AccessorioPrenotazione {
@@ -133,7 +125,6 @@ model AccessorioPrenotazione {
   accessorio     Accessorio   @relation(fields: [accessorioId], references: [id], onDelete: Cascade)
   prenotazione   Prenotazione @relation(fields: [prenotazioneId], references: [id], onDelete: Cascade)
   @@schema("new")
-
 }
 
 model Assicurazione {
@@ -143,7 +134,6 @@ model Assicurazione {
   prezzo       Decimal        @default(0.0)
   prenotazioni Prenotazione[]
   @@schema("new")
-
 }
 
 // ==========================================
@@ -158,55 +148,72 @@ model Location {
   biciclette   BiciclettaLocation[]
   prenotazioni Prenotazione[]
   @@schema("new")
-
 }
 
 model BiciclettaLocation {
-  id                     Int                   @id @default(autoincrement())
-  locationId             Int
-  biciclettaSpecificId   Int
-  quantitaMuscolare               Int                   @default(0)
-  quantitaElettrica               Int                   @default(0)
+  id                   Int    @id @default(autoincrement())
+  locationId           Int
+  biciclettaSpecificId Int
+  quantitaMuscolare    Int    @default(0)
+  quantitaElettrica    Int    @default(0)
 
-  location               Location              @relation(fields: [locationId], references: [id], onDelete: Cascade)
-  biciclettaSpecific     SpecificheBicicletta  @relation(fields: [biciclettaSpecificId], references: [id], onDelete: Cascade)
+  location           Location             @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  biciclettaSpecific SpecificheBicicletta @relation(fields: [biciclettaSpecificId], references: [id], onDelete: Cascade)
+  riparazioni        Riparazione[]
   @@unique([locationId, biciclettaSpecificId])
   @@schema("new")
+}
 
+// ==========================================
+// RIPARAZIONI
+// ==========================================
+
+model Riparazione {
+  id                   Int       @id @default(autoincrement())
+  biciclettaLocationId Int
+  prenotazioneId       Int?
+  motivo               String
+  costo                Decimal?  @db.Decimal(10, 2)
+  aperta               Boolean   @default(true)
+  dataInizio           DateTime  @default(now())
+  dataFine             DateTime?
+
+  biciclettaLocation BiciclettaLocation @relation(fields: [biciclettaLocationId], references: [id], onDelete: Cascade)
+  prenotazione       Prenotazione?      @relation(fields: [prenotazioneId], references: [id])
+  @@schema("new")
 }
 
 // ==========================================
 // BICICLETTE E SPECIFICHE
 // ==========================================
+
 enum TipologiaBicicletta {
   CITY
   MOUNTAIN
   GRAVEL
   ROAD
-
   @@schema("new")
 }
+
 model Bicicletta {
-  id        Int        @id @default(autoincrement())
+  id        Int                     @id @default(autoincrement())
   nome      String
   tipologia TipologiaBicicletta
   specifics SpecificheBicicletta[]
   @@schema("new")
-
 }
 
 model SpecificheBicicletta {
-  id                  Int                   @id @default(autoincrement())
+  id                  Int                  @id @default(autoincrement())
   size                String
-  prezzoGiornata       Decimal               @db.Decimal(10, 2)
-  prezzoMezzaGiornata  Decimal               @db.Decimal(10, 2)
-  altezzaMin           Int?
-  altezzaMax           Int?
-  biciclettaId         Int
-  bicicletta           Bicicletta            @relation(fields: [biciclettaId], references: [id])
-  prenotazione         Prenotazione[]
-  location             BiciclettaLocation[]
+  prezzoGiornata      Decimal              @db.Decimal(10, 2)
+  prezzoMezzaGiornata Decimal              @db.Decimal(10, 2)
+  altezzaMin          Int?
+  altezzaMax          Int?
+  biciclettaId        Int
+  bicicletta          Bicicletta           @relation(fields: [biciclettaId], references: [id])
+  prenotazione        Prenotazione[]
+  location            BiciclettaLocation[]
   @@unique([biciclettaId, size])
   @@schema("new")
-
 }

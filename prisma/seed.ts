@@ -199,7 +199,7 @@ async function main() {
     oraRitiro:     string
     dataConsegna:  Date
     oraConsegna:   string
-    stato:         'PENDING' | 'PICKED_UP' | 'RETURNED' | 'LATE'
+    stato:         'PENDING' | 'PICKED_UP' | 'RETURNED' | 'LATE' | 'DAMAGED'
     alimentazione: 'MUSCOLARE' | 'ELETTRICA'
     totale:        number
     utenteIdx:     number
@@ -208,6 +208,15 @@ async function main() {
     assicurazione: { id: number }
     accessoriIds:  number[]
     note?:         string
+    danni?:        string
+    noteRiconsegna?: string
+    // Solo per prenotazioni con stato DAMAGED: dati per creare la Riparazione collegata
+    riparazione?: {
+      motivo: string
+      costo?: number
+      dataFine?: Date // se assente, riparazione ancora aperta
+      
+    }
   }
 
   const prenotazioni: PrenData[] = [
@@ -254,6 +263,32 @@ async function main() {
     { dataRitiro: new Date('2026-06-05'), oraRitiro: '09:00', dataConsegna: new Date('2026-06-05'), oraConsegna: '13:00', stato: 'PENDING',   alimentazione: 'MUSCOLARE', totale: 12.0, utenteIdx: 17, specifica: spec(bikeCity,   'M'), location: locMilano,  assicurazione: assBase,  accessoriIds: [] },
     { dataRitiro: new Date('2026-06-05'), oraRitiro: '10:00', dataConsegna: new Date('2026-06-06'), oraConsegna: '10:00', stato: 'PENDING',   alimentazione: 'ELETTRICA', totale: 46.0, utenteIdx: 18, specifica: spec(bikeMTB,    'L'), location: locRoma,    assicurazione: assKasko, accessoriIds: [accCasco.id, accBorraccia.id, accLucchetto.id] },
     { dataRitiro: new Date('2026-06-06'), oraRitiro: '09:00', dataConsegna: new Date('2026-06-06'), oraConsegna: '13:00', stato: 'PENDING',   alimentazione: 'MUSCOLARE', totale: 13.0, utenteIdx: 19, specifica: spec(bikeCity,   'L'), location: locTorino,  assicurazione: assBase,  accessoriIds: [] },
+
+    // ── DAMAGED (con Riparazione collegata) ─────────────────────────────────
+    // 1) Riparazione lieve, già chiusa, costo sotto i 200€ → niente mail
+    {
+      dataRitiro: new Date('2026-05-24'), oraRitiro: '09:00', dataConsegna: new Date('2026-05-26'), oraConsegna: '09:00',
+      stato: 'DAMAGED', alimentazione: 'MUSCOLARE', totale: 40.0, utenteIdx: 6,
+      specifica: spec(bikeCity, 'M'), location: locMilano, assicurazione: assBase, accessoriIds: [accCasco.id],
+      danni: 'Graffio profondo sul telaio laterale.',
+      riparazione: { motivo: 'Graffio profondo sul telaio laterale.', costo: 65.0, dataFine: new Date('2026-05-27') },
+    },
+    // 2) Riparazione importante, ancora aperta, costo sopra 200€ → deve triggerare la mail
+    {
+      dataRitiro: new Date('2026-06-01'), oraRitiro: '10:00', dataConsegna: new Date('2026-06-03'), oraConsegna: '10:00',
+      stato: 'DAMAGED', alimentazione: 'ELETTRICA', totale: 60.0, utenteIdx: 9,
+      specifica: spec(bikeMTB, 'M'), location: locTorino, assicurazione: assEmerg, accessoriIds: [accCasco.id, accLucchetto.id],
+      danni: 'Caduta in discesa: motore elettrico danneggiato e ruota anteriore da sostituire.',
+      riparazione: { motivo: 'Caduta in discesa: motore elettrico danneggiato e ruota anteriore da sostituire.', costo: 340.0 },
+    },
+    // 3) Riparazione media, ancora aperta, senza costo stimato (sarà aggiunto dopo dall'admin)
+    {
+      dataRitiro: new Date('2026-06-05'), oraRitiro: '09:00', dataConsegna: new Date('2026-06-06'), oraConsegna: '09:00',
+      stato: 'DAMAGED', alimentazione: 'MUSCOLARE', totale: 18.0, utenteIdx: 13,
+      specifica: spec(bikeGravel, 'M'), location: locRoma, assicurazione: assBase, accessoriIds: [],
+      danni: 'Cambio non funzionante, da verificare in officina.',
+      riparazione: { motivo: 'Cambio non funzionante, da verificare in officina.' },
+    },
   ]
 
   for (const p of prenotazioni) {
@@ -267,6 +302,8 @@ async function main() {
         alimentazione: p.alimentazione,
         totalePagato:  p.totale,
         note:          p.note,
+        danni:         p.danni,
+        noteRiconsegna: p.noteRiconsegna,
         utenteId:      clienti[p.utenteIdx].id,
         biciclettaId:  p.specifica.id,
         locationId:    p.location.id,
@@ -282,9 +319,43 @@ async function main() {
         })),
       })
     }
+
+    // Se la prenotazione è DAMAGED, creo la Riparazione collegata e decremento lo stock
+    // (stessa logica applicata dall'endpoint update_stato_prenotazione)
+    if (p.stato === 'DAMAGED' && p.riparazione) {
+      const biciclettaLocation = await prisma.biciclettaLocation.findUnique({
+        where: {
+          locationId_biciclettaSpecificId: {
+            locationId: p.location.id,
+            biciclettaSpecificId: p.specifica.id,
+          },
+        },
+      })
+
+      if (!biciclettaLocation) {
+        throw new Error(`BiciclettaLocation non trovata per prenotazione DAMAGED (location ${p.location.id}, specifica ${p.specifica.id})`)
+      }
+
+      await prisma.riparazione.create({
+        data: {
+          biciclettaLocationId: biciclettaLocation.id,
+          prenotazioneId: pren.id,
+          motivo: p.riparazione.motivo,
+          costo: p.riparazione.costo,
+          dataFine: p.riparazione.dataFine,
+        },
+      })
+
+      const campoQuantita = p.alimentazione === 'ELETTRICA' ? 'quantitaElettrica' : 'quantitaMuscolare'
+      await prisma.biciclettaLocation.update({
+        where: { id: biciclettaLocation.id },
+        data: { [campoQuantita]: { decrement: 1 } },
+      })
+    }
   }
 
   console.log(`✅ ${prenotazioni.length} prenotazioni create`)
+  console.log('   → 3 con stato DAMAGED e Riparazione collegata (1 sopra i 200€, 1 senza costo)')
   console.log('')
   console.log('🏁 Seed completato!')
   console.log('   Admin    → admin@bikerent.com / Password123!')

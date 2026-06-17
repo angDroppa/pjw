@@ -9,33 +9,33 @@ import api from './index'
 const BACKOFFICE = '/backoffice'
 
 export interface ConfigResponse {
-  negozi:        LocationResponse[]
-  accessori:     AccessorioResponse[]
+  negozi: LocationResponse[]
+  accessori: AccessorioResponse[]
   assicurazioni: AssicurazioneResponse[]
 }
 
 export interface CatalogoResponse {
   biciclette: BiciclettaResponse[]
-  negozi:     { id: number; nome: string }[]
+  negozi: { id: number; nome: string }[]
 }
 
 interface StatisticheResponse {
-  totalBookings:   number
-  totalRevenue:    number
+  totalBookings: number
+  totalRevenue: number
   shopPerformance: { name: string; revenue: number }[]
-  mostUsedBikes:   { model: string; rentals: number }[]
+  mostUsedBikes: { model: string; rentals: number }[]
   periodoFiltrato: { da: string; a: string } | null
 }
 
 interface PrenotazioniFiltri {
-  utente?:     string
-  data?:       string
+  utente?: string
+  data?: string
   locationId?: number
 }
 
 interface StatisticheFiltri {
   da?: string
-  a?:  string
+  a?: string
 }
 
 export const backofficeApi = {
@@ -54,7 +54,7 @@ export const backofficeApi = {
   getStatistiche: async (filtri?: StatisticheFiltri): Promise<StatisticheResponse> => {
     const params = new URLSearchParams({ action: 'statistiche' })
     if (filtri?.da) params.set('da', filtri.da)
-    if (filtri?.a)  params.set('a',  filtri.a)
+    if (filtri?.a) params.set('a', filtri.a)
     const res = await api.get<StatisticheResponse>(`${BACKOFFICE}?${params}`)
     return res.data
   },
@@ -62,8 +62,8 @@ export const backofficeApi = {
   // ─── Prenotazioni ────────────────────────────────────────────────────────────
   getPrenotazioni: async (filtri?: PrenotazioniFiltri): Promise<PrenotazioneResponse[]> => {
     const params = new URLSearchParams({ action: 'prenotazioni' })
-    if (filtri?.utente)     params.set('utente',     filtri.utente)
-    if (filtri?.data)       params.set('data',       filtri.data)
+    if (filtri?.utente) params.set('utente', filtri.utente)
+    if (filtri?.data) params.set('data', filtri.data)
     if (filtri?.locationId) params.set('locationId', String(filtri.locationId))
     const res = await api.get<PrenotazioneResponse[]>(`${BACKOFFICE}?${params}`)
     return res.data
@@ -194,7 +194,12 @@ export const backofficeApi = {
   },
 
   getStock: async (): Promise<BiciclettaLocationResponse[]> => {
-  const res = await api.get<BiciclettaLocationResponse[]>(`${BACKOFFICE}?action=stock`)
-  return res.data
-},
+    const res = await api.get<BiciclettaLocationResponse[]>(`${BACKOFFICE}?action=stock`)
+    return res.data
+  },
+  
+  sendReminders: async (): Promise<{ inviati: number }> => {
+    const res = await api.post<{ inviati: number }>('/backoffice', { action: 'send_reminders' })
+    return res.data
+  }
 }

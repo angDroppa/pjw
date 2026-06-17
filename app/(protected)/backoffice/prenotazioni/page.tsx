@@ -53,6 +53,21 @@ export default function PrenotazioniPage() {
   const [filtroUtente, setFiltroUtente] = useState("");
   const [filtroData, setFiltroData] = useState("");
 
+  const handleReminders = async () => {
+    try {
+      const { inviati } = await backofficeApi.sendReminders();
+      setToast({
+        msg:
+          inviati > 0
+            ? `${inviati} promemoria inviati`
+            : "Nessuna prenotazione da notificare",
+        type: "ok",
+      });
+    } catch {
+      setToast({ msg: "Errore invio promemoria", type: "err" });
+    }
+  };
+
   useEffect(() => {
     let cancelled = false;
     backofficeApi
@@ -137,6 +152,7 @@ export default function PrenotazioniPage() {
             >
               Reset
             </Btn>
+            <Btn onClick={handleReminders}>📧 Invia promemoria</Btn>
           </div>
         </Card>
 

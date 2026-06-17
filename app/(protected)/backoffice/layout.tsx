@@ -25,6 +25,12 @@ const tabs = [
     icon: "📊",
     href: "/backoffice/statistiche",
   },
+    {
+    id: "riparazioni",
+    label: "Riparazioni",
+    icon: "🔧",
+    href: "/backoffice/riparazioni",
+  },
 ];
 
 const SIDEBAR_WIDTH = 256;
