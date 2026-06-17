@@ -19,6 +19,9 @@ const PUBLIC_PATHS = [
 
 const ROLE_PROTECTED_PATHS: Record<string, string[]> = {
   "/backoffice": ["admin"],
+  "/api/backoffice": ["admin"],
+  "/api/riparazioni": ["admin"],
+
   "/dashboard/settings": ["admin", "manager"],
 };
 
