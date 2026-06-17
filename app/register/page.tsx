@@ -93,7 +93,7 @@ export default function RegisterPage() {
               <legend className="fieldset-legend">Password</legend>
               <input
                 type="password"
-                placeholder="min. 6 caratteri"
+                placeholder="min. 8 caratteri"
                 className={`input w-full ${errors.password ? "input-error" : ""}`}
                 {...register("password")}
               />
@@ -113,7 +113,7 @@ export default function RegisterPage() {
               />
               {errors.confirmPassword && (
                 <p className="fieldset-label text-error">
-                  {errors.confirmPassword.message}
+                  Deve essere uguale alla password e rispettare tutte le regole
                 </p>
               )}
             </fieldset>
